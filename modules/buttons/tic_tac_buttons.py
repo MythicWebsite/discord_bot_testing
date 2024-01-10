@@ -17,7 +17,7 @@ class Tic_Tac_Button(Button):
     async def callback(self, interaction: Interaction):
         slot = int(self.custom_id)
         if (self.tic_tac_data.active == 0 and self.tic_tac_data.p1.id == interaction.user.id) or (self.tic_tac_data.active == 1 and self.tic_tac_data.p2.id == interaction.user.id):
-            if self.tic_tac_data.action(1, slot):
+            if self.tic_tac_data.action(self.tic_tac_data.active + 1, slot):
                 winner = self.tic_tac_data.check_win()
                 view = View()
                 for i in range(len(self.tic_tac_data.grid)):

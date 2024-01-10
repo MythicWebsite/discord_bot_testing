@@ -44,5 +44,7 @@ class Tic_Tac_Data():
             self.winner = self.p1 if self.grid[2] else self.p2
             self.winner_highlight = [2, 4, 6]
             return True
+        if not 0 in self.grid:
+            self.reset()
         return False
     

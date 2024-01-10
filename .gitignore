@@ -2,3 +2,7 @@
 __pycache__/
 ```
 private_data.json
+.vscode
+.vs
+.idea
+.venv
