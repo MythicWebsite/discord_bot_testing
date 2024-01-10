@@ -10,7 +10,7 @@ with open('private_data.json') as file:
     botKey = json.loads(file.read())['bot_key']
     
 intents = discord.Intents.default()
-bot = commands.Bot(None,intents=intents)
+bot = commands.Bot("",intents=intents)
 
 @bot.event
 async def setup_hook():
@@ -26,5 +26,9 @@ async def on_ready():
     custom_status = "I love men" #f'in {len(bot.guilds):,} servers'
     await bot.change_presence(activity=discord.CustomActivity(name=custom_status))
     logger.info(f'Set status to "{custom_status}"')
+
+@bot.event
+async def on_message(message: discord.Message):
+    pass
 
 bot.run(botKey)
