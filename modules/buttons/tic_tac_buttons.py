@@ -30,9 +30,11 @@ class Tic_Tac_Button(Button):
                 if winner:
                     await interaction.response.edit_message(content=f"{self.tic_tac_data.winner.display_name} won!",embed=None, view=view)
                 else:
-                    await interaction.response.edit_message(content=f"Active Player: {self.tic_tac_data.p2.display_name}",embed=None, view=view)
+                    await interaction.response.edit_message(content=f"Active Player: {self.tic_tac_data.p2.display_name if self.tic_tac_data.active == 1 else self.tic_tac_data.p1.display_name}",embed=None, view=view)
             else:
                 interaction.response.edit_message(view=self)
+        else:
+            logger.warning(f"{interaction.user.display_name} had an issue")
         
 class Tic_Tac_Join_Button(Button):
     def __init__(self, tic_tac_data: Tic_Tac_Data, custom_id: str, label: str = "Join"):
