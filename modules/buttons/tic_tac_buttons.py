@@ -19,7 +19,7 @@ class Tic_Tac_Button(Button):
         if (self.tic_tac_data.active == 0 and self.tic_tac_data.p1.id == interaction.user.id) or (self.tic_tac_data.active == 1 and self.tic_tac_data.p2.id == interaction.user.id):
             if self.tic_tac_data.action(self.tic_tac_data.active + 1, slot):
                 winner = self.tic_tac_data.check_win()
-                view = View()
+                view = View(timeout=None)
                 for i in range(len(self.tic_tac_data.grid)):
                     if self.tic_tac_data.grid[i] == 0:
                         view.add_item(Tic_Tac_Button(self.tic_tac_data, str(i), disabled = True if winner else False))
@@ -50,7 +50,7 @@ class Tic_Tac_Join_Button(Button):
             self.label = interaction.user.display_name
         if self.tic_tac_data.p1 and self.tic_tac_data.p2:
             self.tic_tac_data.reset()
-            view = View()
+            view = View(timeout=None)
             for i in range(len(self.tic_tac_data.grid)):
                 view.add_item(Tic_Tac_Button(self.tic_tac_data, str(i)))
             if self.tic_tac_data.active == 0:
