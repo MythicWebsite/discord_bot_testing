@@ -37,8 +37,8 @@ class Tic_Tac_Button(Button):
             logger.warning(f"{interaction.user.display_name} had an issue")
         
 class Tic_Tac_Join_Button(Button):
-    def __init__(self, tic_tac_data: Tic_Tac_Data, custom_id: str, label: str = "Join"):
-        super().__init__(label=label, custom_id=custom_id)
+    def __init__(self, tic_tac_data: Tic_Tac_Data, custom_id: str, label: str = "Join", disabled: bool = False):
+        super().__init__(label=label, custom_id=custom_id, disabled=disabled)
         self.tic_tac_data = tic_tac_data
     
     async def callback(self, interaction: Interaction):
@@ -58,6 +58,6 @@ class Tic_Tac_Join_Button(Button):
             else:
                 await interaction.response.edit_message(content=f"Active Player: {self.tic_tac_data.p2.display_name}",embed=None, view=view)
         else:
-            interaction.response.edit_message(view=self)
+            await interaction.response.edit_message(view=self)
 
 

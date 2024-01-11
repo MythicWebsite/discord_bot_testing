@@ -1,0 +1,7 @@
+query($id: Int, $page: Int, $perPage: Int, $sort: [CharacterSort]){
+  Page (page: $page, perPage: $perPage){
+    characters (id: $id, sort: $sort) {
+      id
+    }
+  }
+}
