@@ -1,6 +1,10 @@
 ```
 __pycache__/
+pokemon_decks/
+pokemon_sets/
+pokemon_images/
 ```
+set_info.json
 private_data.json
 .vscode
 .vs
