@@ -3,6 +3,7 @@ import json
 import os
 import logging
 from discord.ext import commands
+from modules.pokemon_tcg.update_poke_data import update_poke_data, update_poke_images
 
 logger = logging.getLogger("discord")
 
@@ -32,9 +33,18 @@ async def on_ready():
     custom_status = "I love men" #f'in {len(bot.guilds):,} servers'
     await bot.change_presence(activity=discord.CustomActivity(name=custom_status))
     logger.info(f'Set status to "{custom_status}"')
-
+    
 @bot.event
 async def on_message(message: discord.Message):
     pass
+
+print("Checking for updated pokemon data...")
+if update_poke_data():
+    print("Updated pokemon data")
+else:
+    print("No updates for pokemon data")
+print("Checking for updated images...")
+update_poke_images()
+print("Updated images")
 
 bot.run(botKey)

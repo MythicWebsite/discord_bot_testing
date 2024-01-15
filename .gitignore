@@ -3,10 +3,12 @@ __pycache__/
 pokemon_decks/
 pokemon_sets/
 pokemon_images/
+pokemon-tcg-data/
 ```
-set_info.json
 private_data.json
 .vscode
 .vs
 .idea
 .venv
+data/set_data.json
+data/poke_hash.txt
