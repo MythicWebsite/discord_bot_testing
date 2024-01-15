@@ -1,12 +1,13 @@
 from discord.ext import commands
 from discord import app_commands, Interaction, Embed
-from discord.ui import View
+from discord.ui import View, Button
 from modules.buttons.test_buttons import *
 from modules.player_data import Player_Data
 from modules.data_handling.tic_tac_data import Tic_Tac_Data
 from modules.pokemon_tcg.poke_buttons import *
 from modules.pokemon_tcg.game_state import PokeGame
 from modules.buttons.tic_tac_buttons import *
+from asyncio import sleep
 
 class GameCog(commands.Cog):
     def __init__(self, bot):
@@ -34,9 +35,13 @@ class GameCog(commands.Cog):
     async def pokemon(self, ctx: Interaction):
         game_data = PokeGame(ctx.user, None)
         view = View(timeout = None)
+        p1_view = View(timeout = None)
         view.add_item(Poke_Join_Button(game_data, "join_1", ctx.user.display_name, True))
         view.add_item(Poke_Join_Button(game_data, "join_2", "Join"))
-        await ctx.response.send_message(embed=Embed(title="Pokemon", description="Click the button to join the game"), view=view)
+        p1_view.add_item(Button(label="Waiting", custom_id="p1_button", disabled=True))
+        await ctx.response.send_message(embed=Embed(title="Hand", description="Waiting for game to start"), view=p1_view, ephemeral=True)
+        await ctx.channel.send(embed=Embed(title="Pokemon", description="Click the button to join the game"), view=view)
+        
     
 async def setup(bot: commands.Bot):
     await bot.add_cog(GameCog(bot))
