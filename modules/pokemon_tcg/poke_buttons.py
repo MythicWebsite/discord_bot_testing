@@ -46,10 +46,12 @@ class Poke_Join_Button(Button):
         with open("data/pokemon_decks/base1.json", encoding="utf-8") as f:
             deck_data = json.load(f)
         deck = []
-        for card in deck_data[randint(1,4)]["cards"]:
+        for card in deck_data[f"d-base1-{randint(1,5)}"]["cards"]:
+            card_set = card["id"].split("-")[0]
+            with open(f"data/pokemon_sets/{card_set}.json", encoding="utf-8") as f:
+                set_data = json.load(f)
             for _ in range(card["count"]):
-                deck.append({"id": card["id"],
-                              "set": "base1"})
+                deck.append(set_data[card["id"]])
         return deck
         
 class DrawTestButton(Button):

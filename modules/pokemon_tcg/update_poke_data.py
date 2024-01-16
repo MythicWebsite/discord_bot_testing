@@ -46,6 +46,20 @@ def update_poke_images():
                         os.makedirs(set_dir, exist_ok=True)
                         img.save(image_path)
 
+def fix_json_files(dst_dir,git_dir,set_info=False):
+    "Fixes json files being  lists instead of dictionaries"
+    for set_file in os.listdir(git_dir):
+        if set_file.endswith('.json'):
+            with open(os.path.join(git_dir, set_file),encoding="utf-8") as file:
+                set_data = json.loads(file.read())
+            new_set_data = {}
+            for card in set_data:
+                new_set_data[card['id']] = card
+                if set_info:
+                    new_set_data[card['id']]["set"] = set_file.replace('.json', '')
+            with open(os.path.join(dst_dir, set_file), 'w',encoding="utf-8") as file:
+                json.dump(new_set_data, file, indent=4)
+
 def update_poke_data():
     "Updates card data to newest data from the pokemon-tcg-data repository."
     # Define the repository and directories
@@ -73,14 +87,45 @@ def update_poke_data():
     if local_commit != remote_commit:
         subprocess.check_call(['git', 'clone', repo_url])
         
+        if os.path.exists(cards_dst_dir):
+            shutil.rmtree(cards_dst_dir, onerror=remove_readonly)
+        if os.path.exists(decks_dst_dir):
+            shutil.rmtree(decks_dst_dir, onerror=remove_readonly)
+        if os.path.exists(sets_dst):
+            os.remove(sets_dst)
+            
         # Create destination directory if it doesn't exist
         os.makedirs(cards_dst_dir, exist_ok=True)
         os.makedirs(decks_dst_dir, exist_ok=True)
 
+        
+        print("Creating card files")
+        fix_json_files(cards_dst_dir,cards_git_dir, True)
+        print("Creating deck files")
+        fix_json_files(decks_dst_dir,decks_git_dir)
+        print("Creating set file")
+        with open(sets_git,encoding="utf-8") as file:
+            set_data = json.loads(file.read())
+            new_set_data = {}
+            for set in set_data:
+                new_set_data[set['id']] = set
+            with open(sets_dst, 'w',encoding="utf-8") as file:
+                json.dump(new_set_data, file, indent=4)
+        # for set_file in os.listdir(cards_git_dir):
+        #     if set_file.endswith('.json'):
+        #         with open(os.path.join(cards_git_dir, set_file),encoding="utf-8") as file:
+        #             set_data = json.loads(file.read())
+        #         new_set_data = {}
+        #         for card in set_data:
+        #             new_set_data[card['id']] = card
+        #         with open(os.path.join(cards_dst_dir, set_file), 'w',encoding="utf-8") as file:
+        #             json.dump(new_set_data, file, indent=4)
+        
+        
         # Copy the directories
-        shutil.copytree(cards_git_dir, cards_dst_dir, dirs_exist_ok=True)
-        shutil.copytree(decks_git_dir, decks_dst_dir, dirs_exist_ok=True)
-        shutil.copy2(sets_git, sets_dst)
+        # shutil.copytree(cards_git_dir, cards_dst_dir, dirs_exist_ok=True)
+        # shutil.copytree(decks_git_dir, decks_dst_dir, dirs_exist_ok=True)
+        # shutil.copy2(sets_git, sets_dst)
 
         # Save the new commit hash
         with open(commit_file, 'w') as f:
