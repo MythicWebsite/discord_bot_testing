@@ -35,12 +35,10 @@ class GameCog(commands.Cog):
     async def pokemon(self, ctx: Interaction):
         game_data = PokeGame()
         view = View(timeout = None)
-        # p1_view = View(timeout = None)
-        view.add_item(Poke_Join_Button(game_data, "join_1", "Join"))
-        # p1_view.add_item(Button(label="Waiting", custom_id="p1_button", disabled=True))
-        # game_data.attach_message(await ctx.channel.send(embed=Embed(title="Pokemon", description="Click the button to join the game"), view=view))
-        await ctx.response.send_message(embed=Embed(title="Pokemon", description="Player 1: None\nPlayer 2: None"), view=view)
-        game_data.game_message = await ctx.original_response()
+        view.add_item(Poke_Join_Button(game_data))
+        await ctx.response.send_message(embed=Embed(title="", description="Player 1: None"))
+        game_data.zone_p1_msg = await ctx.original_response()
+        game_data.zone_p2_msg = await ctx.channel.send(embed=Embed(title="", description="Player 2: None"), view=view)
         
         
     

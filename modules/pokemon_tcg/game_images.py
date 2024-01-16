@@ -1,5 +1,6 @@
 from PIL import Image
 from io import BytesIO
+from modules.pokemon_tcg.game_state import PokeGame, PokePlayer
 
 def generate_hand_image(hand: list):
     card_width = 240
@@ -18,11 +19,39 @@ def generate_hand_image(hand: list):
     
     for i, card in enumerate(hand):
         cur_card = Image.open(f"data/pokemon_images/{card['set']}/{card['id']}.png")
+        # cur_card = cur_card.resize((card_width, card_height))
         x = (i % cards_per_row) * card_width + spacing * (i % cards_per_row)
         y = (i // cards_per_row) * card_height + spacing * (i // cards_per_row)
         hand_image.paste(cur_card, (x, y))
     img_bytes = BytesIO()
     hand_image.save(img_bytes, format='JPEG')
+    img_bytes.seek(0)
+    
+    return img_bytes
+
+def generate_mid_image(game_data: PokeGame):
+    for player in range(len(game_data.players)):
+        pass
+    
+def generate_player_image(player: PokePlayer):
+    card_back = Image.open("data/card_back.jpg")
+    player_image = Image.open("data/background.jpg")
+    card_width = 240
+    card_height = 330
+    for i, _ in enumerate(player.prize):
+        x = (i % 2) * (card_width//2)
+        y = (i // 2) * (card_height//2)
+        if player.p_num == 0:
+            x = player_image.width - card_width - x
+        player_image.paste(card_back, (x, y))
+    
+    if player.p_num == 0:
+        player_image.paste(card_back, (0,0))
+    else:
+        player_image.paste(card_back, (player_image.width - card_width, player_image.height - card_height))
+    
+    img_bytes = BytesIO()
+    player_image.save(img_bytes, format='JPEG')
     img_bytes.seek(0)
     
     return img_bytes
