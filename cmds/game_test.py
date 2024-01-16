@@ -33,14 +33,15 @@ class GameCog(commands.Cog):
     
     @app_commands.command(name="pokemon", description="Play a game of pokemon")
     async def pokemon(self, ctx: Interaction):
-        game_data = PokeGame(ctx.user, None)
+        game_data = PokeGame()
         view = View(timeout = None)
-        p1_view = View(timeout = None)
-        view.add_item(Poke_Join_Button(game_data, "join_1", ctx.user.display_name, True))
-        view.add_item(Poke_Join_Button(game_data, "join_2", "Join"))
-        p1_view.add_item(Button(label="Waiting", custom_id="p1_button", disabled=True))
-        await ctx.response.send_message(embed=Embed(title="Hand", description="Waiting for game to start"), view=p1_view, ephemeral=True)
-        await ctx.channel.send(embed=Embed(title="Pokemon", description="Click the button to join the game"), view=view)
+        # p1_view = View(timeout = None)
+        view.add_item(Poke_Join_Button(game_data, "join_1", "Join"))
+        # p1_view.add_item(Button(label="Waiting", custom_id="p1_button", disabled=True))
+        # game_data.attach_message(await ctx.channel.send(embed=Embed(title="Pokemon", description="Click the button to join the game"), view=view))
+        await ctx.response.send_message(embed=Embed(title="Pokemon", description="Player 1: None\nPlayer 2: None"), view=view)
+        game_data.game_message = await ctx.original_response()
+        
         
     
 async def setup(bot: commands.Bot):

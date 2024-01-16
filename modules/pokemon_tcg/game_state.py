@@ -1,8 +1,8 @@
-from discord import User
+from discord import User, Message
 import random
 
 class PokeGame():
-    def __init__(self, p1: User, p2: User) -> None:
+    def __init__(self, p1: User = None, p2: User = None, message: Message = None) -> None:
         self.p1_deck = None
         self.p2_deck = None
         self.p1 = p1
@@ -17,6 +17,9 @@ class PokeGame():
         self.p2_bench = [None,None,None,None,None]
         self.p1_active = None
         self.p2_active = None
+        self.p1_message = message
+        self.p2_message = message
+        self.game_message = message
         
     def setup(self, p1_deck: list, p2_deck: list):
         random.shuffle(p1_deck)

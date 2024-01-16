@@ -1,7 +1,7 @@
 from discord.ui import Button
 from modules.pokemon_tcg.game_state import PokeGame
 from modules.pokemon_tcg.game_images import generate_hand_image
-from discord import Interaction, File
+from discord import Interaction, File, Embed
 from discord.ui import View
 from random import randint
 import logging
@@ -16,18 +16,25 @@ class Poke_Join_Button(Button):
     
     async def callback(self, interaction: Interaction):
         if self.custom_id == "join_2":
-            self.diabled = True
             self.game_data.p2 = interaction.user
+        elif self.custom_id == "join_1":
+            self.game_data.p1 = interaction.user
+        if self.game_data.p1 and self.game_data.p2:
             view = View(timeout=None)
             deck1, deck2 = self.create_temp_decks()
             self.game_data.setup(deck1,deck2)
             hand1 = generate_hand_image(self.game_data.p1_hand)
             hand2 = generate_hand_image(self.game_data.p2_hand)
-            await interaction.response.edit_message(content=f"Active Player: {self.game_data.p1.display_name if self.game_data.active == 0 else self.game_data.p2.display_name}",embed=None, view=view)
-            await interaction.channel.send(file=File(fp=hand1, filename="hand1.png"))
-            await interaction.channel.send(file=File(fp=hand2, filename="hand2.png"))
+            await self.game_data.game_message.edit(content=f"Active Player: {self.game_data.p1.display_name if self.game_data.active == 0 else self.game_data.p2.display_name}",embed=None, view=view)
+            await interaction.response.send_message(file=File(fp=hand2, filename="hand.png"), ephemeral=True)
+            self.game_data.p2_message = await interaction.original_response()
+            await self.game_data.p1_message.edit(embed=None,attachments=[File(fp=hand1, filename="hand.png")])
         else:
-            await interaction.response.edit_message(view=self)
+            await interaction.response.send_message(embed=Embed(title="Hand", description="Waiting for game to start"), ephemeral=True)
+            self.game_data.p1_message = await interaction.original_response()
+            view = View(timeout=None)
+            view.add_item(Poke_Join_Button(self.game_data, "join_2", "Join"))
+            await self.game_data.game_message.edit(embed=Embed(title="Pokemon", description=f"Player 1: {self.game_data.p1.display_name}\nPlayer 2: None"),view=view)
 
     def create_temp_decks(self):
         with open("data/pokemon_decks/base1.json", encoding="utf-8") as f:
