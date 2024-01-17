@@ -9,9 +9,12 @@ class ClearCog(commands.Cog):
     async def clear(self, ctx: Interaction):
         if ctx.channel.id == 1196867005316337674:
             await ctx.response.send_message(embed=Embed(title="Cleared", description="Channel is being cleared"), ephemeral=True)
+            msg = await ctx.original_response()
             await ctx.channel.purge()
+            await msg.delete()
         else:
             await ctx.response.send_message(embed=Embed(title="Error", description="You can't clear this channel"), ephemeral=True)
+
             
             
 async def setup(bot: commands.Bot):

@@ -34,7 +34,7 @@ def generate_mid_image(game_data: PokeGame):
         pass
     
 def generate_player_image(player: PokePlayer):
-    card_back = Image.open("data/card_back.jpg")
+    card_back = Image.open("data/pokemon_data/card_back.jpg")
     player_image = Image.open("data/background.jpg")
     card_width = 240
     card_height = 330

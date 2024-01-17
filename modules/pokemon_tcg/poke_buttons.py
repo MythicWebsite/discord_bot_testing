@@ -43,15 +43,15 @@ class Poke_Join_Button(Button):
             await self.game_data.zone_p2_msg.edit(view=view)
 
     def create_temp_deck(self):
-        with open("data/pokemon_decks/base1.json", encoding="utf-8") as f:
-            deck_data = json.load(f)
+        with open("data/pokemon_data/decks.json", encoding="utf-8") as f:
+            deck_data = json.load(f)["base1"]
+        with open(f"data/pokemon_data/cards.json", encoding="utf-8") as f:
+                set_data = json.load(f)
         deck = []
         for card in deck_data[f"d-base1-{randint(1,5)}"]["cards"]:
             card_set = card["id"].split("-")[0]
-            with open(f"data/pokemon_sets/{card_set}.json", encoding="utf-8") as f:
-                set_data = json.load(f)
             for _ in range(card["count"]):
-                deck.append(set_data[card["id"]])
+                deck.append(set_data[card_set][card["id"]])
         return deck
         
 class DrawTestButton(Button):

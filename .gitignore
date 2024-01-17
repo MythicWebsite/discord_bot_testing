@@ -4,6 +4,7 @@ pokemon_decks/
 pokemon_sets/
 pokemon_images/
 pokemon-tcg-data/
+pokemon_data/
 ```
 private_data.json
 .vscode
