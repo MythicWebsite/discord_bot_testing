@@ -23,8 +23,8 @@ class PokePlayer():
     async def draw(self, amount: int = 1):
         for _ in range(amount):
             self.hand.append(self.deck.pop())
-        self.hand.sort(key = operator.itemgetter("supertype","name"))
-        await self.info_thread.send(f"{self.user.display_name} drew {amount} cards")
+        self.hand.sort(key = lambda x: (x.get('supertype', ''), x.get('types', ''), x.get('name', '')))
+        await self.info_thread.send(f"{self.user.display_name} drew {amount} card{'s' if amount > 1 else ''}")
             
     async def make_prizes(self):
         for _ in range(6):
