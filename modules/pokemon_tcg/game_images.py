@@ -28,12 +28,8 @@ def generate_hand_image(hand: list):
     img_bytes.seek(0)
     
     return img_bytes
-
-def generate_mid_image(game_data: PokeGame):
-    for player in range(len(game_data.players)):
-        pass
     
-def generate_player_image(player: PokePlayer):
+def generate_player_image(game_data: PokeGame, player: PokePlayer):
     card_back = Image.open("data/pokemon_data/card_back.png")
     player_image = Image.open("data/background.jpg").convert("RGBA")
     card_width = 240
@@ -47,8 +43,14 @@ def generate_player_image(player: PokePlayer):
     
     if player.p_num == 0:
         player_image.paste(card_back, (0,0))
+        if player.active:
+            if not game_data.active:
+                player_image.paste(card_back, (840, 330))
     else:
         player_image.paste(card_back, (player_image.width - card_width, player_image.height - card_height))
+        if player.active:
+            if not game_data.active:
+                player_image.paste(card_back, (840, 0))
     
     img_bytes = BytesIO()
     player_image.save(img_bytes, format='PNG')

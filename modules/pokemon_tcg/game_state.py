@@ -19,6 +19,7 @@ class PokePlayer():
         self.message: Message = None
         self.p_num: int = None
         self.info_thread: Thread = info_thread
+        self.com: str = "Idle"
         
     async def draw(self, amount: int = 1):
         for _ in range(amount):
@@ -51,7 +52,7 @@ class PokeGame():
 
     async def setup(self):
         logger.info(f"Setting up game with {self.players[0].user.name} and {self.players[1].user.name}")
-        self.active = self.players[randint(0,1)]
+        # self.active = self.players[randint(0,1)]
         for player in range(len(self.players)):
             shuffle(self.players[player].deck)
             self.players[player].p_num = player
