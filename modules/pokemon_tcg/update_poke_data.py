@@ -32,31 +32,31 @@ def update_poke_images():
         set_data = json.loads(file.read())
     for poke_set in set_data:
         for card in set_data[poke_set]:
-            if "images" in card:
+            if "images" in set_data[poke_set][card]:
                 image_url = set_data[poke_set][card]['images']['small']
                 set_dir = os.path.join(images_dir, poke_set)
-                image_path = os.path.join(set_dir, f"{set_data[poke_set][card]['id'].replace('?','QM')}.jpg")
+                image_path = os.path.join(set_dir, f"{set_data[poke_set][card]['id'].replace('?','QM')}.png")
                 if not os.path.exists(image_path):
                     print(f"Downloading {image_url} to {image_path}")
                     # Download the image
                     response = requests.get(image_url)
-                    img = Image.open(BytesIO(response.content)).convert('RGB')
+                    img = Image.open(BytesIO(response.content))
 
                     img = size_image(img, 240, 330)
 
                     # Save the image
                     os.makedirs(set_dir, exist_ok=True)
                     img.save(image_path)
-    if not os.path.exists('data/pokemon_data/card_back.jpg'):
+    if not os.path.exists('data/pokemon_data/card_back.png'):
         print("Downloading card back")
         # Download the image
         response = requests.get('https://images.pokemontcg.io/')
-        img = Image.open(BytesIO(response.content)).convert('RGB')
+        img = Image.open(BytesIO(response.content))
         img = img.resize((245, 342))
         img = size_image(img, 240, 330)
 
         # Save the image
-        img.save('data/pokemon_data/card_back.jpg')
+        img.save('data/pokemon_data/card_back.png')
 
 def fix_json_files(dst_dir,git_dir,set_info=False):
     "Fixes json files being  lists instead of dictionaries"

@@ -33,12 +33,17 @@ class GameCog(commands.Cog):
     
     @app_commands.command(name="pokemon", description="Play a game of pokemon")
     async def pokemon(self, ctx: Interaction):
+        await ctx.response.defer()
         game_data = PokeGame()
         view = View(timeout = None)
         view.add_item(Poke_Join_Button(game_data))
-        await ctx.response.send_message(embed=Embed(title="", description="Player 1: None"))
-        game_data.zone_p1_msg = await ctx.original_response()
+        await ctx.followup.send(content = "View the game logs in this thread")
+        msg = await ctx.original_response()
+        game_data.info_thread = await msg.create_thread(name="Game log",auto_archive_duration=1440)
+        game_data.zone_p1_msg = await ctx.channel.send(embed=Embed(title="", description="Player 1: None"))
         game_data.zone_p2_msg = await ctx.channel.send(embed=Embed(title="", description="Player 2: None"), view=view)
+        game_data.channel = ctx.channel
+
         
         
     

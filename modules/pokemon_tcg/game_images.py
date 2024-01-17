@@ -15,7 +15,7 @@ def generate_hand_image(hand: list):
     image_width = card_width * cards_per_row + spacing * (cards_per_row -1)
     image_height = card_height * rows + spacing * (rows - 1)
     
-    hand_image = Image.new('RGB', (image_width, image_height))
+    hand_image = Image.new('RGBA', (image_width, image_height))
     
     for i, card in enumerate(hand):
         cur_card = Image.open(f"data/pokemon_images/{card['set']}/{card['id']}.png")
@@ -24,7 +24,7 @@ def generate_hand_image(hand: list):
         y = (i // cards_per_row) * card_height + spacing * (i // cards_per_row)
         hand_image.paste(cur_card, (x, y))
     img_bytes = BytesIO()
-    hand_image.save(img_bytes, format='JPEG')
+    hand_image.save(img_bytes, format='PNG')
     img_bytes.seek(0)
     
     return img_bytes
@@ -34,8 +34,8 @@ def generate_mid_image(game_data: PokeGame):
         pass
     
 def generate_player_image(player: PokePlayer):
-    card_back = Image.open("data/pokemon_data/card_back.jpg")
-    player_image = Image.open("data/background.jpg")
+    card_back = Image.open("data/pokemon_data/card_back.png")
+    player_image = Image.open("data/background.jpg").convert("RGBA")
     card_width = 240
     card_height = 330
     for i, _ in enumerate(player.prize):
@@ -51,7 +51,7 @@ def generate_player_image(player: PokePlayer):
         player_image.paste(card_back, (player_image.width - card_width, player_image.height - card_height))
     
     img_bytes = BytesIO()
-    player_image.save(img_bytes, format='JPEG')
+    player_image.save(img_bytes, format='PNG')
     img_bytes.seek(0)
     
     return img_bytes
