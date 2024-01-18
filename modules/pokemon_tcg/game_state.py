@@ -1,4 +1,5 @@
 from discord import User, Message, Thread, TextChannel, File
+from discord.ui import View
 from random import shuffle
 import logging
 
@@ -19,6 +20,7 @@ class PokePlayer():
         self.p_num: int = None
         self.info_thread: Thread = info_thread
         self.com: str = "Idle"
+        self.view: View = None
         
     async def draw(self, amount: int = 1):
         for _ in range(amount):

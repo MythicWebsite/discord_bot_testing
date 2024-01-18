@@ -27,7 +27,6 @@ class Poke_Join_Button(Button):
                 new_player = PokePlayer(ctx.user, self.create_temp_deck(), self.game_data.info_thread)
             await self.game_data.info_thread.send(f"{new_player.user.display_name} has joined the game")
             self.game_data.players.append(new_player)
-            view = View(timeout=None)
             if len(self.game_data.players) == 2:
                 await self.game_data.setup()
                 while not self.game_data.players[0].basics_in_hand() and not self.game_data.players[1].basics_in_hand():
@@ -35,17 +34,22 @@ class Poke_Join_Button(Button):
                         await player.mulligan(File(fp=generate_hand_image(player.hand), filename="hand.png"))
                 for i, player in enumerate(self.game_data.players):
                     p_view = View(timeout=None)
+                    view = View(timeout=None)
                     if player.basics_in_hand() == 0:
                         player.com = "WaitMulligan"
                     else:
                         player.com = "SelectActive"
                         p_view.add_item(Select_Active(self.game_data, player, "hand"))
                     if i == 1:
+                        view.add_item(Refresh_Hand_Button(self.game_data))
+                        player.view = p_view
                         player.message = await ctx.followup.send(file=File(fp=generate_hand_image(player.hand), filename="hand.png"), view=p_view, ephemeral=True)
                     else:
+                        player.view = p_view
                         await player.message.edit(embed=None,attachments=[File(fp=generate_hand_image(player.hand), filename="hand.png")],view=p_view)
                     await self.game_data.zone_msg[i].edit(content=player.user.display_name,embed=None, view=view, attachments=[File(fp=generate_zone_image(self.game_data, player), filename="zone.jpeg")])
             else:
+                view = View(timeout=None)
                 new_player.message = await ctx.followup.send(embed=Embed(title="Hand", description="Waiting for game to start"), ephemeral=True)
                 view.add_item(Poke_Join_Button(self.game_data))
                 await self.game_data.zone_msg[0].edit(embed=Embed(title="", description=f"Player 1: {new_player.user.display_name}"))
@@ -93,6 +97,7 @@ class DrawFromMulligan(Button):
             for i, player in enumerate(self.game_data.players):
                 p_view = View(timeout=None)
                 if player.com == "SetupComplete":
+                    player.view = p_view
                     await player.message.edit(attachments=[File(fp=generate_hand_image(player.hand), filename="hand.png")], view=p_view)
                 elif player.com == "WaitMulligan":
                     await player.mulligan(File(fp=generate_hand_image(player.hand), filename="hand.png"))
@@ -104,7 +109,7 @@ class DrawFromMulligan(Button):
                 else:
                     for amount in range(3):
                         p_view.add_item(DrawFromMulligan(self.game_data, player, amount))
-                    await player.message.edit(attachments=[File(fp=generate_hand_image(player.hand), filename="hand.png")], view=p_view)
+                player.view = p_view
                 await player.message.edit(attachments=[File(fp=generate_hand_image(player.hand), filename="hand.png")], view=p_view)
                 await self.game_data.zone_msg[i].edit(attachments=[File(fp=generate_zone_image(self.game_data, player), filename="zone.jpeg")])
         
@@ -138,10 +143,12 @@ class Select_Active(Select):
                             if player.basics_in_hand() != 0:
                                 player.com = "ReadyForSelect"
                         if player.com != "SetupComplete":
+                            player.view = p_view
                             await player.message.edit(attachments=[File(fp=generate_hand_image(player.hand), filename="hand.png")], view=p_view)
                             await self.game_data.zone_msg[i].edit(attachments=[File(fp=generate_zone_image(self.game_data, player), filename="zone.jpeg")])     
                 else:
                     p_view = View(timeout=None)
+                    self.player.view = p_view
                     await self.player.message.edit(attachments=[File(fp=generate_hand_image(self.player.hand), filename="hand.png")], view=p_view)
 
              
@@ -169,6 +176,7 @@ class Select_Bench(Select):
                 p_view = View(timeout=None)
                 p_view.add_item(Select_Bench(self.game_data, self.player, "setup"))
                 await self.game_data.zone_msg[self.player.p_num].edit(attachments=[File(fp=generate_zone_image(self.game_data, self.player), filename="zone.jpeg")])
+                self.player.view = p_view
                 await self.player.message.edit(attachments=[File(fp=generate_hand_image(self.player.hand), filename="hand.png")], view=p_view)
                 await self.game_data.info_thread.send(content = f"{self.player.user.display_name} has placed a benched pokemon")
             elif self.values[0] == "done":
@@ -181,6 +189,7 @@ class Select_Bench(Select):
                             self.game_data.active = randint(0,1)
                             await self.game_data.info_thread.send(content = f"{self.game_data.players[self.game_data.active].user.display_name} won the coin flip and will go first")
                         await player.make_prizes()
+                        self.player.view = p_view
                         await player.message.edit(view=p_view)
                         await self.game_data.zone_msg[i].edit(attachments=[File(fp=generate_zone_image(self.game_data, player), filename="zone.jpeg")])
                         await self.game_data.info_thread.send(content = f"{player.user.display_name} reveals their active pokemon", file=File(fp=generate_card(player.active), filename="active_pokemon.png"))
@@ -191,10 +200,30 @@ class Select_Bench(Select):
                             player.com = "DrawFromMulligan"
                             for amount in range(3):
                                 p_view.add_item(DrawFromMulligan(self.game_data, player, amount))
+                            self.player.view = p_view
                             await player.message.edit(view=p_view)
                         else:
+                            self.player.view = p_view
                             await player.message.edit(view=p_view)
                 else:
+                    self.player.view = p_view
                     await self.player.message.edit(view=p_view)
 
-                    
+class Refresh_Hand_Button(Button):
+    def __init__(self, game_data: PokeGame):
+        super().__init__(label="Refresh Hand")
+        self.game_data = game_data
+    
+    async def callback(self, ctx: Interaction):
+        await ctx.response.defer()
+        if not self.disabled:
+            player = None
+            for user in self.game_data.players:
+                if user.user == ctx.user:
+                    player = user
+            if player:
+                self.disabled = True
+                p_view = player.view
+                await player.message.delete()
+                player.message = await ctx.followup.send(file=File(fp=generate_hand_image(player.hand), filename="hand.png"), view=p_view, ephemeral=True)
+                self.disabled = False

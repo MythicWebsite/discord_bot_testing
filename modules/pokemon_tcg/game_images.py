@@ -57,7 +57,7 @@ def generate_zone_image(game_data: PokeGame, player: PokePlayer):
             cur_card = card_back
         else:
             cur_card = Image.open(f"data/pokemon_images/{card['set']}/{card['id']}.png")
-        x = (i % 5) * (card_width) + int(card_width* 1.5 )
+        x = (i % 5) * (card_width) + int(card_width * 2)
         y = zone_image.height - card_height
         if player.p_num == 0:
             x = zone_image.width - card_width - x
