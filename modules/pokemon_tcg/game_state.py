@@ -1,5 +1,5 @@
-from discord import User, Message, Thread, TextChannel
-from random import randint, shuffle
+from discord import User, Message, Thread, TextChannel, File
+from random import shuffle
 import logging
 
 logger = logging.getLogger("discord")
@@ -37,6 +37,13 @@ class PokePlayer():
             if "Basic" in card.get("subtypes", {}) and not "Energy" in card.get("supertype", {}):
                 count += 1
         return count
+    
+    async def mulligan(self, image: File):
+        await self.info_thread.send(content = f"{self.user.display_name} has to take a mulligan, this was their hand.",file=image)
+        for _ in range(7):
+            self.deck.append(self.hand.pop())
+        shuffle(self.deck)
+        await self.draw(7)
 
 
 class PokeGame():
@@ -50,11 +57,9 @@ class PokeGame():
 
     async def setup(self):
         logger.info(f"Setting up game with {self.players[0].user.name} and {self.players[1].user.name}")
-        # self.active = self.players[randint(0,1)]
         for i, player in enumerate(self.players):
             shuffle(player.deck)
             player.p_num = i
             await player.draw(7)
-            # self.players[player].make_prizes()
 
 

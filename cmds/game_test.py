@@ -7,7 +7,6 @@ from modules.data_handling.tic_tac_data import Tic_Tac_Data
 from modules.pokemon_tcg.poke_buttons import *
 from modules.pokemon_tcg.game_state import PokeGame
 from modules.buttons.tic_tac_buttons import *
-from asyncio import sleep
 
 class GameCog(commands.Cog):
     def __init__(self, bot):
@@ -44,8 +43,5 @@ class GameCog(commands.Cog):
         game_data.zone_msg.append(await ctx.channel.send(embed=Embed(title="", description="Player 2: None"), view=view))
         game_data.channel = ctx.channel
 
-        
-        
-    
 async def setup(bot: commands.Bot):
     await bot.add_cog(GameCog(bot))

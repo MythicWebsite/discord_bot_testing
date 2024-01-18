@@ -2,6 +2,13 @@ from PIL import Image
 from io import BytesIO
 from modules.pokemon_tcg.game_state import PokeGame, PokePlayer
 
+def generate_card(card: dict):
+    card_image = Image.open(f"data/pokemon_images/{card['set']}/{card['id']}.png")
+    img_bytes = BytesIO()
+    card_image.save(img_bytes, format='PNG')
+    img_bytes.seek(0)
+    return img_bytes
+
 def generate_hand_image(hand: list):
     card_width = 240
     card_height = 330
@@ -51,10 +58,10 @@ def generate_zone_image(game_data: PokeGame, player: PokePlayer):
         else:
             cur_card = Image.open(f"data/pokemon_images/{card['set']}/{card['id']}.png")
         x = (i % 5) * (card_width) + int(card_width* 1.5 )
-        y = 0
+        y = zone_image.height - card_height
         if player.p_num == 0:
             x = zone_image.width - card_width - x
-            y = zone_image.height - card_height - y
+            y = 0
         zone_image.paste(cur_card, (x, y))
     
     #Set up deck
@@ -70,7 +77,7 @@ def generate_zone_image(game_data: PokeGame, player: PokePlayer):
         y = 0
         if player.p_num == 0:
             y = zone_image.height - card_height
-        if not game_data.active and not player.com == "SetupComplete":
+        if not game_data.active and not player.com in ["SetupComplete","DrawFromMulligan"]:
             zone_image.paste(card_back, (x, y))
         else:
             zone_image.paste(Image.open(f"data/pokemon_images/{player.active['set']}/{player.active['id']}.png"), (x, y))
