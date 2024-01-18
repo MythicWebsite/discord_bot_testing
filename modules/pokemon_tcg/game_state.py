@@ -54,6 +54,7 @@ class PokeGame():
         self.channel: TextChannel = None
         self.active: PokePlayer = None
         self.winner: PokePlayer = None
+        self.phase: str = "setup"
 
     async def setup(self):
         logger.info(f"Setting up game with {self.players[0].user.name} and {self.players[1].user.name}")

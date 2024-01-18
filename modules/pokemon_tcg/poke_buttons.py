@@ -20,13 +20,11 @@ class Poke_Join_Button(Button):
         await ctx.response.defer()
         if not self.disabled:
             self.disabled = True
-            if self.game_data.players == []:
-                new_player = PokePlayer(ctx.user, self.create_bad_temp_deck(), self.game_data.info_thread)
-            elif len(self.game_data.players) > 2:
+            if len(self.game_data.players) == 2:
                 logger.warning("Too many players")
                 return
             else:
-                new_player = PokePlayer(ctx.user, self.create_bad_temp_deck(), self.game_data.info_thread)
+                new_player = PokePlayer(ctx.user, self.create_temp_deck(), self.game_data.info_thread)
             await self.game_data.info_thread.send(f"{new_player.user.display_name} has joined the game")
             self.game_data.players.append(new_player)
             view = View(timeout=None)
@@ -104,8 +102,8 @@ class DrawFromMulligan(Button):
                     player.com = "SelectActive"
                     p_view.add_item(Select_Active(self.game_data, player, "hand"))
                 else:
-                    for i in range(3):
-                        p_view.add_item(DrawFromMulligan(self.game_data, player, i))
+                    for amount in range(3):
+                        p_view.add_item(DrawFromMulligan(self.game_data, player, amount))
                     await player.message.edit(attachments=[File(fp=generate_hand_image(player.hand), filename="hand.png")], view=p_view)
                 await player.message.edit(attachments=[File(fp=generate_hand_image(player.hand), filename="hand.png")], view=p_view)
                 await self.game_data.zone_msg[i].edit(attachments=[File(fp=generate_zone_image(self.game_data, player), filename="zone.jpeg")])
@@ -178,6 +176,10 @@ class Select_Bench(Select):
                 p_view = View(timeout=None)
                 if self.game_data.players[1 - self.player.p_num].com == "SetupComplete":
                     for i, player in enumerate(self.game_data.players):
+                        self.game_data.phase = "draw"
+                        if not self.game_data.active:
+                            self.game_data.active = randint(0,1)
+                            await self.game_data.info_thread.send(content = f"{self.game_data.players[self.game_data.active].user.display_name} won the coin flip and will go first")
                         await player.make_prizes()
                         await player.message.edit(view=p_view)
                         await self.game_data.zone_msg[i].edit(attachments=[File(fp=generate_zone_image(self.game_data, player), filename="zone.jpeg")])
@@ -187,8 +189,8 @@ class Select_Bench(Select):
                         p_view = View(timeout=None)
                         if player.com == "SetupComplete":
                             player.com = "DrawFromMulligan"
-                            for i in range(3):
-                                p_view.add_item(DrawFromMulligan(self.game_data, player, i))
+                            for amount in range(3):
+                                p_view.add_item(DrawFromMulligan(self.game_data, player, amount))
                             await player.message.edit(view=p_view)
                         else:
                             await player.message.edit(view=p_view)

@@ -77,7 +77,7 @@ def generate_zone_image(game_data: PokeGame, player: PokePlayer):
         y = 0
         if player.p_num == 0:
             y = zone_image.height - card_height
-        if not game_data.active and not player.com in ["SetupComplete","DrawFromMulligan"]:
+        if not game_data.active:
             zone_image.paste(card_back, (x, y))
         else:
             zone_image.paste(Image.open(f"data/pokemon_images/{player.active['set']}/{player.active['id']}.png"), (x, y))
