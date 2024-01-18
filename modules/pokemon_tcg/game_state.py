@@ -1,7 +1,6 @@
 from discord import User, Message, Thread, TextChannel
 from random import randint, shuffle
 import logging
-import operator
 
 logger = logging.getLogger("discord")
 
@@ -10,7 +9,7 @@ class PokePlayer():
         self.user: User = user
         self.deck: list = deck
         self.hand: list = []
-        self.bench: list = [None,None,None,None,None]
+        self.bench: list = []
         self.active: dict = None
         self.prize: list = []
         self.discard: list = []
@@ -43,8 +42,7 @@ class PokePlayer():
 class PokeGame():
     def __init__(self) -> None:
         self.players: list[PokePlayer,PokePlayer] = []
-        self.zone_p1_msg: Message = None
-        self.zone_p2_msg: Message = None
+        self.zone_msg: list[Message,Message] = []
         self.info_thread: Thread = None
         self.channel: TextChannel = None
         self.active: PokePlayer = None
@@ -53,10 +51,10 @@ class PokeGame():
     async def setup(self):
         logger.info(f"Setting up game with {self.players[0].user.name} and {self.players[1].user.name}")
         # self.active = self.players[randint(0,1)]
-        for player in range(len(self.players)):
-            shuffle(self.players[player].deck)
-            self.players[player].p_num = player
-            await self.players[player].draw(7)
+        for i, player in enumerate(self.players):
+            shuffle(player.deck)
+            player.p_num = i
+            await player.draw(7)
             # self.players[player].make_prizes()
 
 

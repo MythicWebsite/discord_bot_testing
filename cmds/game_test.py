@@ -40,8 +40,8 @@ class GameCog(commands.Cog):
         await ctx.followup.send(content = "View the game logs in this thread")
         msg = await ctx.original_response()
         game_data.info_thread = await msg.create_thread(name="Game log",auto_archive_duration=1440)
-        game_data.zone_p1_msg = await ctx.channel.send(embed=Embed(title="", description="Player 1: None"))
-        game_data.zone_p2_msg = await ctx.channel.send(embed=Embed(title="", description="Player 2: None"), view=view)
+        game_data.zone_msg.append(await ctx.channel.send(embed=Embed(title="", description="Player 1: None")))
+        game_data.zone_msg.append(await ctx.channel.send(embed=Embed(title="", description="Player 2: None"), view=view))
         game_data.channel = ctx.channel
 
         

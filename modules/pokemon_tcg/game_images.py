@@ -29,31 +29,54 @@ def generate_hand_image(hand: list):
     
     return img_bytes
     
-def generate_player_image(game_data: PokeGame, player: PokePlayer):
+def generate_zone_image(game_data: PokeGame, player: PokePlayer):
     card_back = Image.open("data/pokemon_data/card_back.png")
-    player_image = Image.open("data/background.jpg").convert("RGBA")
+    zone_image = Image.open("data/background.jpg").convert("RGBA")
     card_width = 240
     card_height = 330
+    
+    #Set up prize cards
     for i, _ in enumerate(player.prize):
         x = (i % 2) * (card_width//2)
         y = (i // 2) * (card_height//2)
         if player.p_num == 0:
-            x = player_image.width - card_width - x
-        player_image.paste(card_back, (x, y))
+            x = zone_image.width - card_width - x
+            y = zone_image.height - card_height - y
+        zone_image.paste(card_back, (x, y))
     
-    if player.p_num == 0:
-        player_image.paste(card_back, (0,0))
-        if player.active:
-            if not game_data.active:
-                player_image.paste(card_back, (840, 330))
-    else:
-        player_image.paste(card_back, (player_image.width - card_width, player_image.height - card_height))
-        if player.active:
-            if not game_data.active:
-                player_image.paste(card_back, (840, 0))
+    #Set up bench
+    for i, card in enumerate(player.bench):
+        if player.com == "SelectBench":
+            cur_card = card_back
+        else:
+            cur_card = Image.open(f"data/pokemon_images/{card['set']}/{card['id']}.png")
+        x = (i % 5) * (card_width) + int(card_width* 1.5 )
+        y = 0
+        if player.p_num == 0:
+            x = zone_image.width - card_width - x
+            y = zone_image.height - card_height - y
+        zone_image.paste(cur_card, (x, y))
+    
+    #Set up deck
+    if len(player.deck) > 0:
+        if player.p_num == 0:
+            zone_image.paste(card_back, (0,0))
+        else:
+            zone_image.paste(card_back, (zone_image.width - card_width, zone_image.height - card_height))
+    
+    #Set up active pokemon
+    if player.active:
+        x = zone_image.width//2 - card_width
+        y = 0
+        if player.p_num == 0:
+            y = zone_image.height - card_height
+        if not game_data.active and not player.com == "SetupComplete":
+            zone_image.paste(card_back, (x, y))
+        else:
+            zone_image.paste(Image.open(f"data/pokemon_images/{player.active['set']}/{player.active['id']}.png"), (x, y))
     
     img_bytes = BytesIO()
-    player_image.save(img_bytes, format='PNG')
+    zone_image.save(img_bytes, format='PNG')
     img_bytes.seek(0)
     
     return img_bytes
