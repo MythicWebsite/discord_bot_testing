@@ -1,26 +1,14 @@
 from discord.ext import commands
 from discord import app_commands, Interaction, Embed
-from discord.ui import View, Button
-from modules.buttons.test_buttons import *
-from modules.player_data import Player_Data
+from discord.ui import View
 from modules.data_handling.tic_tac_data import Tic_Tac_Data
-from modules.pokemon_tcg.poke_buttons import *
-from modules.pokemon_tcg.game_state import PokeGame
+from modules.pokemon_tcg.poke_setup_buttons import Poke_Join_Button
+from modules.pokemon_tcg.game_classes import PokeGame
 from modules.buttons.tic_tac_buttons import *
 
 class GameCog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.counter = 0
-    
-    @app_commands.command(name="start", description="huuhhjdjjj")
-    async def start(self, ctx: Interaction):
-        player_data = Player_Data(ctx.user.id)
-        view = View(timeout = None)
-        embed = Embed(title=f"{ctx.user.display_name}'s Panel", description=f"{player_data.data['count']}")
-        view.add_item(Ok_Button(player_data))
-        view.add_item(Ok_Button(player_data, "Not Ok", "not_ok_button"))
-        await ctx.response.send_message(embed=embed, view=view)
 
     @app_commands.command(name="tic_tac_toe", description="Play a game of tic tac toe")
     async def tic_tac_toe(self, ctx: Interaction):

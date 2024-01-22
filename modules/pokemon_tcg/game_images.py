@@ -1,9 +1,9 @@
-from PIL import Image
+from PIL import Image, ImageDraw, ImageFont, ImageOps
 from io import BytesIO
-from modules.pokemon_tcg.game_state import PokeGame, PokePlayer
+from modules.pokemon_tcg.game_classes import PokeGame, PokePlayer, PokeCard
 
-def generate_card(card: dict):
-    card_image = Image.open(f"data/pokemon_images/{card['set']}/{card['id']}.png")
+def generate_card(card: PokeCard):
+    card_image = Image.open(f"data/pokemon_images/{card.set}/{card.id}.png")
     img_bytes = BytesIO()
     card_image.save(img_bytes, format='PNG')
     img_bytes.seek(0)
@@ -25,7 +25,7 @@ def generate_hand_image(hand: list):
     hand_image = Image.new('RGBA', (image_width, image_height))
     
     for i, card in enumerate(hand):
-        cur_card = Image.open(f"data/pokemon_images/{card['set']}/{card['id']}.png")
+        cur_card = Image.open(f"data/pokemon_images/{card.set}/{card.id}.png")
         # cur_card = cur_card.resize((card_width, card_height))
         x = (i % cards_per_row) * card_width + spacing * (i % cards_per_row)
         y = (i // cards_per_row) * card_height + spacing * (i // cards_per_row)
@@ -35,7 +35,7 @@ def generate_hand_image(hand: list):
     img_bytes.seek(0)
     
     return img_bytes
-    
+
 def generate_zone_image(game_data: PokeGame, player: PokePlayer):
     card_back = Image.open("data/pokemon_data/card_back.png")
     zone_image = Image.open("data/background.jpg").convert("RGBA")
@@ -56,7 +56,7 @@ def generate_zone_image(game_data: PokeGame, player: PokePlayer):
         if player.com == "SelectBench":
             cur_card = card_back
         else:
-            cur_card = Image.open(f"data/pokemon_images/{card['set']}/{card['id']}.png")
+            cur_card = Image.open(f"data/pokemon_images/{card.set}/{card.id}.png")
         x = (i % 5) * (card_width) + int(card_width * 2)
         y = zone_image.height - card_height
         if player.p_num == 0:
@@ -66,10 +66,20 @@ def generate_zone_image(game_data: PokeGame, player: PokePlayer):
     
     #Set up deck
     if len(player.deck) > 0:
+        font = ImageFont.truetype("arial.ttf", 120)
+
         if player.p_num == 0:
+            x = 0
+            y = 0
             zone_image.paste(card_back, (0,0))
         else:
-            zone_image.paste(card_back, (zone_image.width - card_width, zone_image.height - card_height))
+            x = zone_image.width - card_width
+            y = zone_image.height - card_height
+            
+        zone_image.paste(card_back, (x,y))
+        text_draw = ImageDraw.Draw(zone_image)
+        text_draw.text((x + card_width//2, y + card_height//2), f"{len(player.deck)}", font=font, anchor="mm", fill=(255,255,255), stroke_width=15, stroke_fill=(0,0,0))
+        # outline_text(zone_image, f"{len(player.deck)}", x, y, 15, font, (255,255,255), (0,0,0))
     
     #Set up active pokemon
     if player.active:
@@ -80,7 +90,7 @@ def generate_zone_image(game_data: PokeGame, player: PokePlayer):
         if not game_data.active:
             zone_image.paste(card_back, (x, y))
         else:
-            zone_image.paste(Image.open(f"data/pokemon_images/{player.active['set']}/{player.active['id']}.png"), (x, y))
+            zone_image.paste(Image.open(f"data/pokemon_images/{player.active.set}/{player.active.id}.png"), (x, y))
     
     img_bytes = BytesIO()
     zone_image.save(img_bytes, format='PNG')
