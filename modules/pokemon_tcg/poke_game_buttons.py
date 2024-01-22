@@ -11,7 +11,7 @@ logger = getLogger("discord")
 
 class Retreat_Button(Button):
     def __init__(self, game_data: PokeGame, player: PokePlayer):
-        super().__init__(label=f"Retreat")
+        super().__init__(label=f"Retreat", disabled = True)
         self.game_data = game_data
         self.player = player
         
@@ -43,28 +43,38 @@ class End_Turn_Button(Button):
                 await other_player.message.edit(view=other_player.view)
                 return
             self.game_data.turn += 1
+            for mon in self.player.bench:
+                mon.turn_cooldown = True
+            self.player.active.turn_cooldown = True
             self.game_data.active = other_player
             await game_msg(self.game_data.info_thread, f"It is now {other_player.user.display_name}'s turn - Turn {self.game_data.turn}")
             await other_player.draw()
-            turn_view(self.game_data)
+            turn_view(self.game_data, other_player)
             await other_player.message.edit(attachments=[File(fp=generate_hand_image(other_player.hand), filename="hand.png")], view=other_player.view)
             for i, msg in enumerate(self.game_data.zone_msg):
                 await msg.edit(attachments=[File(fp=generate_zone_image(self.game_data, self.game_data.players[i]), filename="zone.jpeg")])
             
             
 class Play_Card_Select(Select):
-    def __init__(self, game_data: PokeGame, player: PokePlayer):
-        super().__init__(placeholder = "Play a card", options = [])
+    def __init__(self, game_data: PokeGame, player: PokePlayer, options: list):
+        super().__init__(placeholder = "Play a card", options = options)
         self.game_data = game_data
         self.player = player
-        for card_no, card in enumerate(self.player.hand):
-            if True: #Check if card can be played
-                self.options.append(SelectOption(label=card["name"], value=card_no))
     
     async def callback(self, ctx: Interaction):
         await ctx.response.defer()
         if not self.disabled:
             self.disabled = True
+            card: PokeCard = self.player.hand[int(self.values[0])]
+            if card.supertype == "Energy":
+                pass
+            if card.supertype == "Trainer":
+                pass
+            if card.supertype == "Pok\u00e9mon":
+                if "Basic" in card.subtypes:
+                    self.player.bench.append(self.player.hand.pop(int(self.values[0])))
+            turn_view(self.game_data, self.player)
+            await redraw_player(self.game_data, self.player)
             
 
 class Use_Ability_Select(Select):
@@ -126,6 +136,36 @@ class Generic_Select(Select):
         if not self.disabled:
             self.disabled = True
             
-def turn_view(game_data: PokeGame):
-    game_data.active.view.add_item(Retreat_Button(game_data, game_data.active))
-    game_data.active.view.add_item(End_Turn_Button(game_data, game_data.active))
+def turn_view(game_data: PokeGame, player: PokePlayer):
+    player.view.clear_items()
+    dupes = []
+    options = []
+    for num, card in enumerate(player.hand):
+        if card.name in dupes:
+            continue
+        dupes.append(card.name)
+        if check_if_playable(card, player):
+            options.append(SelectOption(label=card.name, value=num))
+        if len(options) > 24:
+            break
+    if len(options) > 0:
+        player.view.add_item(Play_Card_Select(game_data, player, options))
+    player.view.add_item(Retreat_Button(game_data, player))
+    player.view.add_item(End_Turn_Button(game_data, player))
+
+def check_if_playable(card: PokeCard, player: PokePlayer):
+    if card.supertype == "Energy" and not player.energy:
+        return True
+    if card.supertype == "Trainer":
+        #Check what the card actually does
+        return True
+    if card.supertype == "Pok\u00e9mon":
+        if "Basic" in card.subtypes:
+            if len(player.bench) < 5:
+                return True
+    return False
+
+async def redraw_player(game_data: PokeGame, player: PokePlayer):
+    turn_view(game_data, player)
+    await player.message.edit(attachments=[File(fp=generate_hand_image(player.hand), filename="hand.png")], view=player.view)
+    await game_data.zone_msg[player.p_num].edit(attachments=[File(fp=generate_zone_image(game_data, player), filename="zone.jpeg")])

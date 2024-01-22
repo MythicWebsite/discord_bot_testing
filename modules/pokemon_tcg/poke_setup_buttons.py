@@ -184,7 +184,7 @@ class Select_Startup_Bench(Select):
                         await game_msg(self.game_data.info_thread, f"{player.user.display_name} reveals their active pokemon", File(fp=generate_card(player.active), filename="active_pokemon.png"))
                     await game_msg(self.game_data.info_thread, f"{self.game_data.active.user.display_name} won the coin flip and will go first")
                     await self.game_data.active.draw()
-                    turn_view(self.game_data)
+                    turn_view(self.game_data, self.game_data.active)
                     await self.game_data.active.message.edit(attachments=[File(fp=generate_hand_image(self.game_data.active.hand), filename="hand.png")], view=self.game_data.active.view)
                 elif self.game_data.players[1 - self.player.p_num].com in ["WaitMulligan","ReadyForSelect"]:
                     for i, player in enumerate(self.game_data.players):

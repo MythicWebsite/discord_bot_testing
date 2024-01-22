@@ -9,7 +9,7 @@ def generate_card(card: PokeCard):
     img_bytes.seek(0)
     return img_bytes
 
-def generate_hand_image(hand: list):
+def generate_hand_image(hand: list[PokeCard]):
     card_width = 240
     card_height = 330
     cards_per_row = 7
@@ -26,7 +26,6 @@ def generate_hand_image(hand: list):
     
     for i, card in enumerate(hand):
         cur_card = Image.open(f"data/pokemon_images/{card.set}/{card.id}.png")
-        # cur_card = cur_card.resize((card_width, card_height))
         x = (i % cards_per_row) * card_width + spacing * (i % cards_per_row)
         y = (i // cards_per_row) * card_height + spacing * (i // cards_per_row)
         hand_image.paste(cur_card, (x, y))

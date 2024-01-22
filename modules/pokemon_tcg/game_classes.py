@@ -24,7 +24,9 @@ class PokeCard():
         self.rules: list = card.get("rules", [])
         self.set: str = card.get("set", None)
         self.current_hp: int = self.hp
+        self.turn_cooldown: bool = False
         self.special_conditions: list = []
+        self.attached_mons: list[PokeCard] = []
         self.attached_energy: list[PokeCard] = []
         self.attached_tools: list[PokeCard] = []
 
