@@ -12,7 +12,7 @@ class PokeCard():
         self.id: str = card.get("id", None)
         self.supertype: str = card.get("supertype", "")
         self.subtypes: list = card.get("subtypes", [])
-        self.hp: int = card.get("hp", None)
+        self.hp: int = int(card.get("hp", 0))
         self.types: list = card.get("types", [])
         self.evolvesFrom: str = card.get("evolvesFrom", "")
         self.evolvesTo: str = card.get("evolvesTo", "")
@@ -29,6 +29,20 @@ class PokeCard():
         self.attached_mons: list[PokeCard] = []
         self.attached_energy: list[PokeCard] = []
         self.attached_tools: list[PokeCard] = []
+        
+    def reset(self):
+        self.current_hp = self.hp
+        self.turn_cooldown = False
+        self.special_conditions = []
+        
+def evolve(card: PokeCard, sub_card: PokeCard):
+    card.current_hp = card.hp - (sub_card.hp - sub_card.current_hp)
+    for energy, _ in enumerate(sub_card.attached_energy):
+        card.attached_energy.append(sub_card.attached_energy.pop(energy))
+    for tool, _ in enumerate(sub_card.attached_tools):
+        card.attached_tools.append(sub_card.attached_tools.pop(tool))
+    sub_card.reset()
+    card.attached_mons.append(sub_card)
 
 
 class PokePlayer():
@@ -52,7 +66,7 @@ class PokePlayer():
         for _ in range(amount):
             if len(self.deck) > 0:
                 self.hand.append(self.deck.pop())
-        self.hand.sort(key = lambda x: (x.supertype, x.types, x.name)) #(x.get('supertype', ''), x.get('types', ''), x.get('name', '')))
+        self.hand.sort(key = lambda x: (x.supertype, x.types, x.name))
         await game_msg(self.info_thread, f"{self.user.display_name} drew {amount} card{'s' if amount > 1 else ''}")
             
     async def make_prizes(self):
