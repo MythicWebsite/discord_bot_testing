@@ -2,6 +2,22 @@ from PIL import Image, ImageDraw, ImageFont, ImageOps
 from io import BytesIO
 from modules.pokemon_tcg.game_classes import PokeGame, PokePlayer, PokeCard
 
+enegery_loc = "data/pokemon_energy/"
+
+energy_colors = {
+    "Double Colorless Energy": "Colorless-attackb.png",
+    "Darkness Energy": "Darkness-attackb.png",
+    "Dragon Energy": "Dragon-attackb.png",
+    "Fairy Energy": "Fairy-attackb.png",
+    "Fighting Energy": "Fighting-attackb.png",
+    "Fire Energy": "Fire-attackb.png",
+    "Grass Energy": "Grass-attackb.png",
+    "Lightning Energy": "Lightning-attackb.png",
+    "Metal Energy": "Metal-attackb.png",
+    "Psychic Energy": "Psychic-attackb.png",
+    "Water Energy": "Water-attackb.png"
+}
+
 def generate_card(card: PokeCard):
     card_image = Image.open(f"data/pokemon_images/{card.set}/{card.id}.png")
     img_bytes = BytesIO()
@@ -62,6 +78,7 @@ def generate_zone_image(game_data: PokeGame, player: PokePlayer):
             x = zone_image.width - card_width - x
             y = 0
         zone_image.paste(cur_card, (x, y))
+        
     
     #Set up deck
     if len(player.deck) > 0:
@@ -78,7 +95,6 @@ def generate_zone_image(game_data: PokeGame, player: PokePlayer):
         zone_image.paste(card_back, (x,y))
         text_draw = ImageDraw.Draw(zone_image)
         text_draw.text((x + card_width//2, y + card_height//2), f"{len(player.deck)}", font=font, anchor="mm", fill=(255,255,255), stroke_width=15, stroke_fill=(0,0,0))
-        # outline_text(zone_image, f"{len(player.deck)}", x, y, 15, font, (255,255,255), (0,0,0))
     
     #Set up active pokemon
     if player.active:
@@ -90,6 +106,19 @@ def generate_zone_image(game_data: PokeGame, player: PokePlayer):
             zone_image.paste(card_back, (x, y))
         else:
             zone_image.paste(Image.open(f"data/pokemon_images/{player.active.set}/{player.active.id}.png"), (x, y))
+        if len(player.active.attached_energy) > 0:
+            player.active.attached_energy.sort(key = lambda x: x.name)
+            spacing = 43
+            colorless_offset = 0
+            for i, energy in enumerate(player.active.attached_energy):
+                energy_image = Image.open(f"{enegery_loc}{energy_colors[energy.name]}")
+                new_x = x - energy_image.width//2
+                new_y = y + 5 + i*spacing + colorless_offset
+                zone_image.paste(energy_image, (new_x, new_y), energy_image)
+                if energy.name == "Double Colorless Energy":
+                    colorless_offset += spacing
+                    new_y += colorless_offset
+                    zone_image.paste(energy_image, (new_x, new_y), energy_image)
     
     img_bytes = BytesIO()
     zone_image.save(img_bytes, format='PNG')

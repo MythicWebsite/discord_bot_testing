@@ -37,10 +37,10 @@ class PokeCard():
         
 def evolve(card: PokeCard, sub_card: PokeCard):
     card.current_hp = card.hp - (sub_card.hp - sub_card.current_hp)
-    for energy, _ in enumerate(sub_card.attached_energy):
-        card.attached_energy.append(sub_card.attached_energy.pop(energy))
-    for tool, _ in enumerate(sub_card.attached_tools):
-        card.attached_tools.append(sub_card.attached_tools.pop(tool))
+    for _ in range(len(sub_card.attached_energy)):
+        card.attached_energy.append(sub_card.attached_energy.pop())
+    for _ in range(len(sub_card.attached_tools)):
+        card.attached_tools.append(sub_card.attached_tools.pop())
     sub_card.reset()
     card.attached_mons.append(sub_card)
 
