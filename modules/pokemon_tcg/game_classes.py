@@ -73,7 +73,14 @@ class PokePlayer():
         for _ in range(6):
             self.prize.append(self.deck.pop())  
         await game_msg(self.info_thread, f"{self.user.display_name} places their prizes")
-        
+    
+    async def discard_cards(self, amount:int = "All"):
+        if amount == "All":
+            amount = len(self.hand)
+        for _ in range(amount):
+            self.discard.append(self.hand.pop())
+        await game_msg(self.info_thread, f"{self.user.display_name} discards {amount} card{'s' if amount > 1 else ''}")
+    
     def basics_in_hand(self):
         count = 0
         for card in self.hand:

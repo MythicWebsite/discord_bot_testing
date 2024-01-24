@@ -1,0 +1,263 @@
+{
+    "base1":{
+        "base1-70":{
+            "activate":[
+                {
+                    "action": "destroy",
+                    "target": "self"
+                }
+            ]
+        },
+        "base1-71":{
+            "play": [
+                {
+                    "action": "discard",
+                    "amount": 2,
+                    "choice": true
+                },
+                {
+                    "action": "search",
+                    "amount": 1,
+                    "from_loc": "deck",
+                    "to_loc": "hand"
+                }
+            ]
+        },
+        "base1-72":{
+            "play": [
+                {
+                    "action": "devolve",
+                    "to_loc": "discard",
+                    "stage": "choice",
+                    "target": "self"
+                }
+            ]
+        },
+        "base1-73":{
+            "play": [
+                {
+                    "action": "return_cards",
+                    "target": "opponent",
+                    "amount": "all"
+                },
+                {
+                    "action": "draw",
+                    "target": "opponent",
+                    "amount": 7
+                }
+            ]
+        },
+        "base1-74":{
+            "play": [
+                {
+                    "action": "discard",
+                    "target": "self",
+                    "choice": true,
+                    "amount": "2"
+                },
+                {
+                    "action": "search",
+                    "from_loc": "discard",
+                    "to_loc": "hand",
+                    "specific_amount":{
+                        "trainer": 1
+                    }
+                }
+            ]
+        },
+        "base1-75":{
+            "play": [
+                {
+                    "action": "reveal"
+                },
+                {
+                    "action": "reveal",
+                    "target": "opponent"
+                },
+                {
+                    "action": "search",
+                    "from_loc": "hand",
+                    "to_loc": "deck",
+                    "specific_amount":{
+                        "trainer": "all"
+                    }
+                },
+                {
+                    "action": "search",
+                    "target": "opponent",
+                    "from_loc": "hand",
+                    "to_loc": "deck",
+                    "specific_amount":{
+                        "trainer": "all"
+                    }
+                }
+            ]
+        },
+        "base1-76":{
+            "play": [
+                {
+                    "action": "evolve",
+                    "stage": 2,
+                    "mon_type": "basic"
+                }
+            ]
+        },
+        "base1-77":{
+            "play": [
+                {
+                    "action": "search",
+                    "from_loc":"hand",
+                    "to_loc": "deck",
+                    "specific_amount":{
+                        "Pokemon": 1
+                    }
+                },
+                {
+                    "action": "search",
+                    "from_loc":"deck",
+                    "to_loc": "hand",
+                    "specific_amount":{
+                        "Pokemon": 1
+                    }
+                }
+            ]
+        },
+        "base1-78":{
+            "play": [
+                {
+                    "action": "devolve",
+                    "to_loc": "discard",
+                    "stage": 0,
+                    "target": "self"
+                },
+                {
+                    "inherit": true,
+                    "action": "return"
+                }
+            ]
+        },
+        "base1-79":{
+            "play": [
+                {
+                    "action": "remove",
+                    "type": "energy",
+                    "target": "self"
+                },
+                {
+                    "action": "remove",
+                    "type": "energy",
+                    "amount": 2
+                }
+            ]
+        },
+        "base1-80":{
+            "play": [
+                {
+                    "action": "attach",
+                    "target": "self"
+                }
+            ],
+            "end_of_next": [
+                {
+                    "action": "destroy",
+                    "target": "self"
+                }
+            ],
+            "attach_passive": [
+                {
+                    "action": "reduce_damage",
+                    "type": "taken",
+                    "amount": 20
+                }
+            ]
+        },
+        "base1-81":{
+            "play": [
+                {
+                    "action": "discard",
+                    "target": "self",
+                    "amount": 1
+                },
+                {
+                    "action": "search",
+                    "from_loc":"discard",
+                    "to_loc": "hand",
+                    "specific_amount":{
+                        "energy": 2
+                    },
+                    "up_to": true
+                }
+            ]
+        },
+        "base1-82":{
+            "play": [
+                {
+                    "action": "cure_status"
+                }
+            ]
+        },
+        "base1-83":{
+            "play": [
+                {
+                    "action": "search",
+                    "from_loc":"hand",
+                    "to_loc": "deck",
+                    "amount": 2
+                },
+                {
+                    "action": "draw",
+                    "amount": 1
+                }
+            ]
+        },
+        "base1-84":{
+            "play": [
+                {
+                    "action": "attach",
+                    "target": "self"
+                }
+            ],
+            "end_of_turn": [
+                {
+                    "action": "destroy",
+                    "target": "self"
+                }
+            ],
+            "attach_passive": [
+                {
+                    "action": "increase_damage",
+                    "type": "given",
+                    "amount": 10
+                }
+            ]
+        },
+        "base1-85":{
+            "play": [
+                {
+                    "action": "heal",
+                    "target": "self",
+                    "mon_target": "all"
+                },
+                {
+                    "action": "remove",
+                    "type": "energy",
+                    "target": "self",
+                    "mon_target": "all"
+                }
+            ]
+        },
+        "base1-86":{
+            "play": [
+                {
+                    "action": "search",
+                    "target": "opponent",
+                    "from_loc": "discard",
+                    "to_loc": "bench",
+                    "specific_amount":{
+                        "basic_mon": 1
+                    }
+                }
+            ]
+        }
+    }
+}
