@@ -66,6 +66,11 @@ def energy_icon(x:int, y:int, zone_image: Image, energy: PokeCard, i: int, color
         zone_image.paste(energy_image, (new_x, new_y), energy_image)
     return colorless_offset
 
+def health(x:int, y:int, zone_image: Image, health: int, card_width:int):
+    font = ImageFont.truetype("data/ARLRDBD.ttf", 34)
+    text_draw = ImageDraw.Draw(zone_image)
+    text_draw.text((x + card_width - 48, y + 10), f"{health}", font=font, anchor="rt", fill=(200,0,0), stroke_width=5, stroke_fill=(255,255,255))
+
 def generate_zone_image(game_data: PokeGame, player: PokePlayer):
     zone_image = background.copy()
     card_width = 240
@@ -73,44 +78,38 @@ def generate_zone_image(game_data: PokeGame, player: PokePlayer):
     
     #Set up prize cards
     for i, _ in enumerate(player.prize):
-        # x = (i % 2) * (card_width//2)
         x = 0
         y = i * (card_height//5)
-        # if player.p_num == 0:
-            # x = zone_image.width - card_width - x
-            # y = zone_image.height - card_height - y
         zone_image.paste(card_back, (x, y))
     
     #Set up bench
     for i, card in enumerate(player.bench):
-        if not game_data.active:
-            cur_card = card_back.copy()
-        else:
-            cur_card = Image.open(f"data/pokemon_images/{card.set}/{card.id}.png")
-        x = (i % 5) * (card_width) + card_width#+ int(card_width * 2) - int(card_width * 0.25)
+        
+        x = (i % 5) * (card_width) + card_width
         y = zone_image.height - card_height
         if player.p_num == 0:
-            # x -= int(card_width//2)
             y = 0
-        zone_image.paste(cur_card, (x, y))
+        if not game_data.active:
+            zone_image.paste(card_back, (x, y))
+        else:
+            zone_image.paste(Image.open(f"data/pokemon_images/{card.set}/{card.id}.png"), (x, y))
+            health(x, y, zone_image, card.current_hp, card_width)
         if len(card.attached_energy) > 0:
             card.attached_energy.sort(key = lambda x: x.name)
             colorless_offset = 0
             for i, energy in enumerate(card.attached_energy):
                 colorless_offset = energy_icon(x, y, zone_image, energy, i, colorless_offset)
         
+        
     
     #Set up deck
     if len(player.deck) > 0:
-        font = ImageFont.truetype("arial.ttf", 120)
+        font = ImageFont.truetype("data/ARLRDBD.ttf", 120)
 
         x = zone_image.width - card_width
         if player.p_num == 0:
-            # x = 0
             y = 0
-            # zone_image.paste(card_back, (0,0))
         else:
-            # x = zone_image.width - card_width
             y = zone_image.height - card_height
             
         zone_image.paste(card_back, (x,y))
@@ -119,7 +118,7 @@ def generate_zone_image(game_data: PokeGame, player: PokePlayer):
     
     #Set up active pokemon
     if player.active:
-        x = zone_image.width//2 - card_width
+        x = zone_image.width//2 - card_width//2
         y = 0
         if player.p_num == 0:
             y = zone_image.height - card_height
@@ -127,11 +126,13 @@ def generate_zone_image(game_data: PokeGame, player: PokePlayer):
             zone_image.paste(card_back, (x, y))
         else:
             zone_image.paste(Image.open(f"data/pokemon_images/{player.active.set}/{player.active.id}.png"), (x, y))
+            health(x, y, zone_image, player.active.current_hp, card_width)
         if len(player.active.attached_energy) > 0:
             player.active.attached_energy.sort(key = lambda x: x.name)
             colorless_offset = 0
             for i, energy in enumerate(player.active.attached_energy):
                 colorless_offset = energy_icon(x, y, zone_image, energy, i, colorless_offset)
+        
     
     img_bytes = BytesIO()
     zone_image.save(img_bytes, format='PNG')

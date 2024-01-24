@@ -38,6 +38,7 @@ class Poke_Join_Button(Button):
                     view = View(timeout=None)
                     if player.basics_in_hand() == 0:
                         player.com = "WaitMulligan"
+                        player.view.add_item(Button(label = "Waiting...", disabled = True))
                     else:
                         player.com = "SelectActive"
                         player.view.add_item(Select_Startup_Active(self.game_data, player))
@@ -97,6 +98,7 @@ class DrawFromMulligan(Button):
             for i, player in enumerate(self.game_data.players):
                 player.view.clear_items()
                 if player.com == "SetupComplete":
+                    player.view.add_item(Button(label = "Waiting...", disabled = True))
                     await player.message.edit(attachments=[File(fp=generate_hand_image(player.hand), filename="hand.png")], view=player.view)
                 elif player.com == "WaitMulligan":
                     await player.mulligan(File(fp=generate_hand_image(player.hand), filename="hand.png"))
@@ -135,6 +137,7 @@ class Select_Startup_Active(Select):
                         player.view.add_item(Select_Startup_Bench(self.game_data, player))
                     elif player.com == "WaitMulligan":
                         await player.mulligan(File(fp=generate_hand_image(player.hand), filename="hand.png"))
+                        player.view.add_item(Button(label = "Waiting...", disabled = True))
                         if player.basics_in_hand() != 0:
                             player.com = "ReadyForSelect"
                     if player.com != "SetupComplete":
@@ -142,6 +145,7 @@ class Select_Startup_Active(Select):
                         await self.game_data.zone_msg[i].edit(attachments=[File(fp=generate_zone_image(self.game_data, player), filename="zone.jpeg")])     
             else:
                 self.player.view.clear_items()
+                self.player.view.add_item(Button(label = "Waiting...", disabled = True))
                 await self.player.message.edit(attachments=[File(fp=generate_hand_image(self.player.hand), filename="hand.png")], view=self.player.view)
 
              
@@ -195,8 +199,10 @@ class Select_Startup_Bench(Select):
                                 player.view.add_item(DrawFromMulligan(self.game_data, player, amount))
                             await player.message.edit(view=player.view)
                         else:
+                            player.view.add_item(Button(label = "Waiting...", disabled = True))
                             await player.message.edit(view=player.view)
                 else:
+                    self.player.view.add_item(Button(label = "Waiting...", disabled = True))
                     await self.player.message.edit(view=self.player.view)
 
 
