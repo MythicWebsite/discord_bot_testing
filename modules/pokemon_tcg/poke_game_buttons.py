@@ -5,13 +5,14 @@ from modules.pokemon_tcg.game_images import generate_hand_image, generate_zone_i
 from modules.pokemon_tcg.thread_channel import game_msg
 from discord import Interaction, File
 from logging import getLogger
+from asyncio import sleep
 
 logger = getLogger("discord")
 
 
 class Retreat_Button(Button):
-    def __init__(self, game_data: PokeGame, player: PokePlayer):
-        super().__init__(label=f"Retreat", disabled = True)
+    def __init__(self, game_data: PokeGame, player: PokePlayer, disabled: bool = False):
+        super().__init__(label=f"Retreat", disabled = disabled)
         self.game_data = game_data
         self.player = player
         
@@ -22,8 +23,8 @@ class Retreat_Button(Button):
             
             
 class End_Turn_Button(Button):
-    def __init__(self, game_data: PokeGame, player: PokePlayer):
-        super().__init__(label=f"End Turn")
+    def __init__(self, game_data: PokeGame, player: PokePlayer, disabled: bool = False):
+        super().__init__(label=f"End Turn", disabled=disabled)
         self.game_data = game_data
         self.player = player
         
@@ -73,12 +74,23 @@ class Play_Card_Select(Select):
                 options: list[SelectOption] = []
                 options.append(SelectOption(label=f"{self.player.active.name} - Active", value="active"))
                 for field_card_no, field_card in enumerate(self.player.bench):
-                    options.append(SelectOption(label=f"{field_card.name} - Bench", value=field_card_no))
+                    options.append(SelectOption(label=f"{field_card.name} - Bench {field_card_no + 1}", value=field_card_no))
                 if len(options) == 1:
-                    if options[0].value == "active":
-                        self.player.active.attached_energy.append(self.player.hand.pop(int(self.values[0])))
-                    else:
-                        self.player.bench[int(options[0].value)].attached_energy.append(self.player.hand.pop(int(self.values[0])))
+                    selected_card = options[0].value
+                else:
+                    self.player.view.clear_items()
+                    action_select = Generic_Select(placeholder="Place energy where?", options = options)
+                    self.player.view.add_item(action_select)
+                    self.player.view.add_item(Retreat_Button(self.game_data, self.player, True))
+                    self.player.view.add_item(End_Turn_Button(self.game_data, self.player, True))
+                    await self.player.message.edit(view=self.player.view)
+                    while not action_select.values:
+                        await sleep(0.3)
+                    selected_card = action_select.values[0]
+                if selected_card == "active":
+                    self.player.active.attached_energy.append(self.player.hand.pop(int(self.values[0])))
+                else:
+                    self.player.bench[int(selected_card)].attached_energy.append(self.player.hand.pop(int(self.values[0])))
                 self.player.energy = True
             elif card.supertype == "Trainer":
                 pass
@@ -91,14 +103,27 @@ class Play_Card_Select(Select):
                         options.append(SelectOption(label=f"{self.player.active.name} - Active", value="active"))
                     for field_card_no, field_card in enumerate(self.player.bench):
                         if card.evolvesFrom == field_card.name:
-                            options.append(SelectOption(label=f"{field_card.name} - Bench", value=field_card_no))
+                            options.append(SelectOption(label=f"{field_card.name} - Bench {field_card_no + 1}", value=field_card_no))
                     if len(options) == 1:
-                        if options[0].value == "active":
-                            evolve(card, self.player.active)
-                            self.player.active = self.player.hand.pop(int(self.values[0]))
-                        else:
-                            evolve(card, self.player.bench[int(options[0].value)])
-                            self.player.bench[int(options[0].value)] = self.player.hand.pop(int(self.values[0]))
+                        selected_card = options[0].value
+                    else:
+                        self.player.view.clear_items()
+                        action_select = Generic_Select(placeholder="Select a pokemon to evolve", options = options)
+                        self.player.view.add_item(action_select)
+                        self.player.view.add_item(Retreat_Button(self.game_data, self.player, True))
+                        self.player.view.add_item(End_Turn_Button(self.game_data, self.player, True))
+                        await self.player.message.edit(view=self.player.view)
+                        while not action_select.values:
+                            await sleep(0.3)
+                        selected_card = action_select.values[0]
+                    if selected_card == "active":
+                        evolve(card, self.player.active)
+                        self.player.active = self.player.hand.pop(int(self.values[0]))
+                    else:
+                        evolve(card, self.player.bench[int(selected_card)])
+                        self.player.bench[int(selected_card)] = self.player.hand.pop(int(self.values[0]))
+                        
+                
             turn_view(self.game_data, self.player)
             await redraw_player(self.game_data, self.player)
             
@@ -152,10 +177,8 @@ class Inspect_Played_Card_Select(Select):
             
             
 class Generic_Select(Select):
-    def __init__(self, game_data: PokeGame, player: PokePlayer, options: list):
-        super().__init__(placeholder = "Inspect a card in play", options = options)
-        self.game_data = game_data
-        self.player = player
+    def __init__(self, placeholder: str, options: list):
+        super().__init__(placeholder = placeholder, options = options)
     
     async def callback(self, ctx: Interaction):
         await ctx.response.defer()
@@ -177,7 +200,7 @@ def turn_view(game_data: PokeGame, player: PokePlayer):
     if len(options) == 0:
         options.append(SelectOption(label="No cards to play", value="None"))
     player.view.add_item(Play_Card_Select(game_data, player, options))
-    player.view.add_item(Retreat_Button(game_data, player))
+    player.view.add_item(Retreat_Button(game_data, player, True))
     player.view.add_item(End_Turn_Button(game_data, player))
 
 def is_playable(card: PokeCard, player: PokePlayer):

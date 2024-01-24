@@ -4,6 +4,9 @@ from modules.pokemon_tcg.game_classes import PokeGame, PokePlayer, PokeCard
 
 enegery_loc = "data/pokemon_energy/"
 
+card_back = Image.open("data/pokemon_data/card_back.png")
+background = Image.open("data/background.jpg").convert("RGBA")
+
 energy_colors = {
     "Double Colorless Energy": "Colorless-attackb.png",
     "Darkness Energy": "Darkness-attackb.png",
@@ -51,45 +54,63 @@ def generate_hand_image(hand: list[PokeCard]):
     
     return img_bytes
 
+def energy_icon(x:int, y:int, zone_image: Image, energy: PokeCard, i: int, colorless_offset: int):
+    spacing = 43
+    energy_image = Image.open(f"{enegery_loc}{energy_colors[energy.name]}")
+    new_x = x - energy_image.width//2
+    new_y = y + 5 + i*spacing + colorless_offset
+    zone_image.paste(energy_image, (new_x, new_y), energy_image)
+    if energy.name == "Double Colorless Energy":
+        colorless_offset += spacing
+        new_y += colorless_offset
+        zone_image.paste(energy_image, (new_x, new_y), energy_image)
+    return colorless_offset
+
 def generate_zone_image(game_data: PokeGame, player: PokePlayer):
-    card_back = Image.open("data/pokemon_data/card_back.png")
-    zone_image = Image.open("data/background.jpg").convert("RGBA")
+    zone_image = background.copy()
     card_width = 240
     card_height = 330
     
     #Set up prize cards
     for i, _ in enumerate(player.prize):
-        x = (i % 2) * (card_width//2)
-        y = (i // 2) * (card_height//2)
-        if player.p_num == 0:
-            x = zone_image.width - card_width - x
-            y = zone_image.height - card_height - y
+        # x = (i % 2) * (card_width//2)
+        x = 0
+        y = i * (card_height//5)
+        # if player.p_num == 0:
+            # x = zone_image.width - card_width - x
+            # y = zone_image.height - card_height - y
         zone_image.paste(card_back, (x, y))
     
     #Set up bench
     for i, card in enumerate(player.bench):
-        if player.com == "SelectBench":
-            cur_card = card_back
+        if not game_data.active:
+            cur_card = card_back.copy()
         else:
             cur_card = Image.open(f"data/pokemon_images/{card.set}/{card.id}.png")
-        x = (i % 5) * (card_width) + int(card_width * 2)
+        x = (i % 5) * (card_width) + card_width#+ int(card_width * 2) - int(card_width * 0.25)
         y = zone_image.height - card_height
         if player.p_num == 0:
-            x = zone_image.width - card_width - x
+            # x -= int(card_width//2)
             y = 0
         zone_image.paste(cur_card, (x, y))
+        if len(card.attached_energy) > 0:
+            card.attached_energy.sort(key = lambda x: x.name)
+            colorless_offset = 0
+            for i, energy in enumerate(card.attached_energy):
+                colorless_offset = energy_icon(x, y, zone_image, energy, i, colorless_offset)
         
     
     #Set up deck
     if len(player.deck) > 0:
         font = ImageFont.truetype("arial.ttf", 120)
 
+        x = zone_image.width - card_width
         if player.p_num == 0:
-            x = 0
+            # x = 0
             y = 0
-            zone_image.paste(card_back, (0,0))
+            # zone_image.paste(card_back, (0,0))
         else:
-            x = zone_image.width - card_width
+            # x = zone_image.width - card_width
             y = zone_image.height - card_height
             
         zone_image.paste(card_back, (x,y))
@@ -108,17 +129,9 @@ def generate_zone_image(game_data: PokeGame, player: PokePlayer):
             zone_image.paste(Image.open(f"data/pokemon_images/{player.active.set}/{player.active.id}.png"), (x, y))
         if len(player.active.attached_energy) > 0:
             player.active.attached_energy.sort(key = lambda x: x.name)
-            spacing = 43
             colorless_offset = 0
             for i, energy in enumerate(player.active.attached_energy):
-                energy_image = Image.open(f"{enegery_loc}{energy_colors[energy.name]}")
-                new_x = x - energy_image.width//2
-                new_y = y + 5 + i*spacing + colorless_offset
-                zone_image.paste(energy_image, (new_x, new_y), energy_image)
-                if energy.name == "Double Colorless Energy":
-                    colorless_offset += spacing
-                    new_y += colorless_offset
-                    zone_image.paste(energy_image, (new_x, new_y), energy_image)
+                colorless_offset = energy_icon(x, y, zone_image, energy, i, colorless_offset)
     
     img_bytes = BytesIO()
     zone_image.save(img_bytes, format='PNG')
