@@ -1,13 +1,16 @@
-from discord import File, Thread, Interaction
-from discord.ui import Button, Select
-# from modules.pokemon_tcg.game_classes import PokePlayer
+from discord import File, Thread, Interaction, Message
+from discord.ui import Button, Select, View
 from datetime import datetime
+
+class Fake_Player():
+    message: Message
+    view: View
 
 async def game_msg(thread: Thread, msg: str, image: File = None):
     timestamp = datetime.now().strftime("[%I:%M %p]: ")
     await thread.send(content = f"{timestamp}{msg}", file=image)
     
-async def hand_msg(ctx: Interaction, player, image: File, refresh: bool = False):
+async def hand_msg(ctx: Interaction, player:Fake_Player, image: File, refresh: bool = False):
     if refresh:
         try:
             await player.message.delete()
@@ -17,7 +20,7 @@ async def hand_msg(ctx: Interaction, player, image: File, refresh: bool = False)
     else:
         await player.message.edit(attachments=[image], view = player.view)
     
-async def lock_msg(player):
+async def lock_msg(player:Fake_Player):
     for comp in player.message.components:
         if type(comp) == Button or type(comp) == Select:
             comp.disabled = True
