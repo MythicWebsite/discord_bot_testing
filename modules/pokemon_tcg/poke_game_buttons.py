@@ -1,10 +1,12 @@
 from typing import Any
 from discord.components import SelectOption
-from discord.ui import Button, Select
+from discord.ui import Button, Select, View
 from modules.pokemon_tcg.game_classes import PokeGame, PokePlayer, PokeCard, evolve
 from modules.pokemon_tcg.game_images import generate_hand_image, generate_zone_image, generate_card
 from modules.pokemon_tcg.poke_messages import game_msg, hand_msg, lock_msg
-from modules.pokemon_tcg.game_rules import card_playable, do_rule
+from modules.pokemon_tcg.game_rules import rule_playable, do_rule, card_type_playable
+from modules.pokemon_tcg.generic_buttons import Generic_Select
+from copy import deepcopy
 from discord import Interaction, File
 from logging import getLogger
 from asyncio import sleep
@@ -89,6 +91,8 @@ class Play_Card_Select(Select):
         await ctx.response.defer()
         if not self.disabled:
             self.disabled = True
+            self.player.temp_view = self.player.view
+            self.player.view = View(timeout=None)
             await lock_msg(self.player)
             card: PokeCard = self.player.hand[int(self.values[0])]
             
@@ -130,8 +134,6 @@ class Play_Card_Select(Select):
                 self.player.temp = self.player.hand.pop(int(self.values[0]))
                 await game_msg(self.game_data.info_thread, f"{self.player.user.display_name} played {card.name}")
                 await do_rule(self.game_data, self.player, card, "play")
-                self.player.discard.append(self.player.temp)
-                self.player.temp = None
             
             #Resolve playing Pokemon cards
             elif card.supertype == "Pok\u00e9mon":
@@ -171,8 +173,9 @@ class Play_Card_Select(Select):
                             evolve(card, self.player.bench[int(selected_card)])
                             self.player.bench[int(selected_card)] = self.player.hand.pop(int(self.values[0]))
                         await game_msg(self.game_data.info_thread, f"{self.player.user.display_name} evolved their pokemon into {card.name}", File(fp=generate_card(card), filename="card.png"))
-            turn_view(self.game_data, self.player)
-            await redraw_player(self.game_data, self.player)
+            if self.player.com == "Idle":
+                turn_view(self.game_data, self.player)
+                await redraw_player(self.game_data, self.player)
             
 
 class Use_Ability_Select(Select):
@@ -223,15 +226,6 @@ class Inspect_Played_Card_Select(Select):
             self.disabled = True
             
             
-class Generic_Select(Select):
-    def __init__(self, placeholder: str, options: list):
-        super().__init__(placeholder = placeholder, options = options)
-    
-    async def callback(self, ctx: Interaction):
-        await ctx.response.defer()
-        if not self.disabled:
-            self.disabled = True
-            
 def turn_view(game_data: PokeGame, player: PokePlayer):
     player.view.clear_items()
     dupes = []
@@ -240,7 +234,7 @@ def turn_view(game_data: PokeGame, player: PokePlayer):
         if card.name in dupes:
             continue
         dupes.append(card.name)
-        if is_playable(game_data, player, card):
+        if card_type_playable(game_data, player, card):
             options.append(SelectOption(label=card.name, value=num))
         if len(options) > 24:
             break
@@ -251,24 +245,6 @@ def turn_view(game_data: PokeGame, player: PokePlayer):
     player.view.add_item(End_Turn_Button(game_data, player))
     game_data.players[1-player.p_num].view.clear_items()
     game_data.players[1-player.p_num].view.add_item(Button(label = "Waiting...", disabled = True))
-
-def is_playable(game_data: PokeGame, player: PokePlayer, card: PokeCard ):
-    if card.supertype == "Energy" and not player.energy:
-        return True
-    if card.supertype == "Trainer":
-        if card_playable(game_data, player, card, "play"):
-            return True
-    if card.supertype == "Pok\u00e9mon":
-        if "Basic" in card.subtypes:
-            if len(player.bench) < 5:
-                return True
-        else:
-            if card.evolvesFrom == player.active.name and player.active.turn_cooldown:
-                return True
-            for field_card in player.bench:
-                if card.evolvesFrom == field_card.name and field_card.turn_cooldown:
-                    return True      
-    return False
 
 async def redraw_player(game_data: PokeGame, player: PokePlayer):
     turn_view(game_data, player)

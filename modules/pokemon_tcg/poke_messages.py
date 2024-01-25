@@ -24,3 +24,4 @@ async def lock_msg(player):
         if type(comp) == Select:
             comp.placeholder = "thinking..."
     await player.message.edit(view = player.view)
+    
