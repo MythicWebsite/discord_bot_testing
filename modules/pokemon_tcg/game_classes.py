@@ -65,7 +65,6 @@ class PokePlayer():
         self.info_thread: Thread = info_thread
         self.com: str = "Idle"
         self.view: View = None
-        self.temp_view: View = None
         
     async def draw(self, amount: int = 1):
         for _ in range(amount):

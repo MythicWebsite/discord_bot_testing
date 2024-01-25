@@ -91,8 +91,6 @@ class Play_Card_Select(Select):
         await ctx.response.defer()
         if not self.disabled:
             self.disabled = True
-            self.player.temp_view = self.player.view
-            self.player.view = View(timeout=None)
             await lock_msg(self.player)
             card: PokeCard = self.player.hand[int(self.values[0])]
             
