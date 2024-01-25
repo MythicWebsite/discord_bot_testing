@@ -143,7 +143,7 @@ class Play_Card_Select(Select):
                         self.player.view.add_item(action_select)
                         # self.player.view.add_item(Retreat_Button(self.game_data, self.player, True))
                         # self.player.view.add_item(End_Turn_Button(self.game_data, self.player, True))
-                        self.player.view.add_item(Cancel_Button(self.game_data, `self.player))
+                        self.player.view.add_item(Cancel_Button(self.game_data, self.player))
                         await self.player.message.edit(view=self.player.view)
                         while not action_select.values and self.player.com != "Cancel":
                             await sleep(0.3)
