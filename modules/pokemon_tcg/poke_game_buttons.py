@@ -4,6 +4,7 @@ from discord.ui import Button, Select
 from modules.pokemon_tcg.game_classes import PokeGame, PokePlayer, PokeCard, evolve
 from modules.pokemon_tcg.game_images import generate_hand_image, generate_zone_image, generate_card
 from modules.pokemon_tcg.poke_messages import game_msg, hand_msg, lock_msg
+from modules.pokemon_tcg.game_rules import card_playable, do_rule
 from discord import Interaction, File
 from logging import getLogger
 from asyncio import sleep
@@ -90,6 +91,8 @@ class Play_Card_Select(Select):
             self.disabled = True
             await lock_msg(self.player)
             card: PokeCard = self.player.hand[int(self.values[0])]
+            
+            #Resolve playing Energy cards
             if card.supertype == "Energy":
                 selected_card = None
                 options: list[SelectOption] = []
@@ -121,8 +124,16 @@ class Play_Card_Select(Select):
                         self.player.bench[int(selected_card)].attached_energy.append(self.player.hand.pop(int(self.values[0])))
                         await game_msg(self.game_data.info_thread, f"{self.player.user.display_name} placed {card.name} on {self.player.bench[int(selected_card)].name}")
                     self.player.energy = True
+                    
+            #Resolve playing Trainer cards
             elif card.supertype == "Trainer":
-                pass
+                self.player.temp = self.player.hand.pop(int(self.values[0]))
+                await game_msg(self.game_data.info_thread, f"{self.player.user.display_name} played {card.name}")
+                await do_rule(self.game_data, self.player, card, "play")
+                self.player.discard.append(self.player.temp)
+                self.player.temp = None
+            
+            #Resolve playing Pokemon cards
             elif card.supertype == "Pok\u00e9mon":
                 if "Basic" in card.subtypes:
                     self.player.bench.append(self.player.hand.pop(int(self.values[0])))
@@ -229,7 +240,7 @@ def turn_view(game_data: PokeGame, player: PokePlayer):
         if card.name in dupes:
             continue
         dupes.append(card.name)
-        if is_playable(card, player):
+        if is_playable(game_data, player, card):
             options.append(SelectOption(label=card.name, value=num))
         if len(options) > 24:
             break
@@ -238,14 +249,15 @@ def turn_view(game_data: PokeGame, player: PokePlayer):
     player.view.add_item(Play_Card_Select(game_data, player, options))
     player.view.add_item(Retreat_Button(game_data, player, True))
     player.view.add_item(End_Turn_Button(game_data, player))
+    game_data.players[1-player.p_num].view.clear_items()
     game_data.players[1-player.p_num].view.add_item(Button(label = "Waiting...", disabled = True))
 
-def is_playable(card: PokeCard, player: PokePlayer):
+def is_playable(game_data: PokeGame, player: PokePlayer, card: PokeCard ):
     if card.supertype == "Energy" and not player.energy:
         return True
     if card.supertype == "Trainer":
-        #Check what the card actually does
-        return True
+        if card_playable(game_data, player, card, "play"):
+            return True
     if card.supertype == "Pok\u00e9mon":
         if "Basic" in card.subtypes:
             if len(player.bench) < 5:

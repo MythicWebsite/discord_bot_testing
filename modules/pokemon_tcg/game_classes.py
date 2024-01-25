@@ -2,9 +2,12 @@ from discord import User, Message, Thread, TextChannel, File
 from modules.pokemon_tcg.poke_messages import game_msg
 from discord.ui import View
 from random import shuffle
-import logging
+from logging import getLogger
+import json
 
-logger = logging.getLogger("discord")
+logger = getLogger("discord")
+with open("data/card_rules.json", "r") as f:
+    card_rules: dict = json.load(f)
 
 class PokeCard():
     def __init__(self, card: dict) -> None:
@@ -21,8 +24,8 @@ class PokeCard():
         self.weaknesses: list = card.get("weaknesses", [])
         self.resistances: list = card.get("resistances", [])
         self.retreatCost: list = card.get("retreatCost", [])
-        self.rules: list = card.get("rules", [])
         self.set: str = card.get("set", None)
+        self.rules: dict = card_rules.get(self.set, {}).get(self.id, {})
         self.current_hp: int = self.hp
         self.turn_cooldown: bool = False
         self.special_conditions: list = []
@@ -54,6 +57,7 @@ class PokePlayer():
         self.active: PokeCard = None
         self.prize: list[PokeCard] = []
         self.discard: list[PokeCard] = []
+        self.temp: PokeCard = None
         self.stadium: PokeCard = None
         self.energy: bool = False
         self.message: Message = None

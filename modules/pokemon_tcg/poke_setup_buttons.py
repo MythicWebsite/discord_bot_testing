@@ -25,7 +25,7 @@ class Poke_Join_Button(Button):
                 logger.warning("Too many players")
                 return
             else:
-                new_player = PokePlayer(ctx.user, self.create_temp_deck(), self.game_data.info_thread)
+                new_player = PokePlayer(ctx.user, self.create_bad_temp_deck(), self.game_data.info_thread)
             await game_msg(self.game_data.info_thread, f"{new_player.user.display_name} has joined the game")
             self.game_data.players.append(new_player)
             if len(self.game_data.players) == 2:

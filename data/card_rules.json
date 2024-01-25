@@ -258,6 +258,121 @@
                     }
                 }
             ]
+        },
+        "base1-87":{
+            "play": [
+                {
+                    "action": "set_aside",
+                    "target": "self",
+                    "amount": 5
+                },
+                {
+                    "action": "re-order",
+                    "inherit": true
+                },
+                {
+                    "action": "move_cards",
+                    "inhert": true,
+                    "to_loc": "deck",
+                    "specific_loc": "top"
+                }
+            ]
+        },
+        "base1-88":{
+            "play": [
+                {
+                    "action": "discard",
+                    "target": "self",
+                    "amount": "all"
+                },
+                {
+                    "action": "draw",
+                    "target": "self",
+                    "amount": 7
+                }
+            ]
+        },
+        "base1-89":{
+            "play": [
+                {
+                    "action": "search",
+                    "target": "self",
+                    "from_loc": "discard",
+                    "to_loc": "bench",
+                    "specific_amount":{
+                        "basic_mon": 1
+                    }
+                },
+                {
+                    "action": "damage",
+                    "inherit": true,
+                    "amount": "half",
+                    "rounding": "down"
+                }
+            ]
+        },
+        "base1-90":{
+            "play": [
+                {
+                    "action": "remove",
+                    "target": "self",
+                    "specific_amount":{
+                        "energy": 1
+                    }
+                },
+                {
+                    "action": "heal",
+                    "inherit": true,
+                    "amount": 40,
+                    "up_to": true
+                }
+            ]
+        },
+        "base1-91":{
+            "play": [
+                {
+                    "action": "draw",
+                    "target": "self",
+                    "amount": 2
+                }
+            ]
+        },
+        "base1-92":{
+            "play": [
+                {
+                    "action": "remove",
+                    "target": "opponent",
+                    "specific_amount":{
+                        "energy": 1
+                    }
+                }
+            ]
+        },
+        "base1-93":{
+            "play": [
+                {
+                    "action": "switch",
+                    "target": "opponent"
+                }
+            ]
+        },
+        "base1-94":{
+            "play": [
+                {
+                    "action": "heal",
+                    "inherit": true,
+                    "amount": 20,
+                    "up_to": true
+                }
+            ]
+        },
+        "base1-95":{
+            "play": [
+                {
+                    "action": "switch",
+                    "target": "self"
+                }
+            ]
         }
     }
 }
