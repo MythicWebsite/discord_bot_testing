@@ -185,6 +185,7 @@ class Select_Startup_Bench(Select):
                 self.player.view.clear_items()
                 if self.game_data.players[1 - self.player.p_num].com == "SetupComplete":
                     for i, player in enumerate(self.game_data.players):
+                        player.com = "Idle"
                         player.view.clear_items()
                         if not self.game_data.active:
                             self.game_data.active = self.game_data.players[randint(0,1)]

@@ -1,3 +1,4 @@
+from typing import Any
 from discord.components import SelectOption
 from discord.ui import Button, Select
 from modules.pokemon_tcg.game_classes import PokeGame, PokePlayer, PokeCard, evolve
@@ -21,6 +22,21 @@ class Retreat_Button(Button):
         if not self.disabled:
             self.disabled = True
             
+            
+
+class Cancel_Button(Button):
+    def __init__(self, game_data: PokeGame, player: PokePlayer):
+        super().__init__(label=f"Cancel")
+        self.game_data = game_data
+        self.player = player
+        
+    async def callback(self, ctx: Interaction):
+        await ctx.response.defer()
+        if not self.disabled:
+            self.disabled = True  
+            self.player.com = "Cancel"
+            turn_view(self.game_data, self.player)
+            await self.player.message.edit(view=self.player.view)
             
 class End_Turn_Button(Button):
     def __init__(self, game_data: PokeGame, player: PokePlayer, disabled: bool = False):
@@ -75,6 +91,7 @@ class Play_Card_Select(Select):
             await lock_msg(self.player)
             card: PokeCard = self.player.hand[int(self.values[0])]
             if card.supertype == "Energy":
+                selected_card = None
                 options: list[SelectOption] = []
                 options.append(SelectOption(label=f"{self.player.active.name} - Active", value="active"))
                 for field_card_no, field_card in enumerate(self.player.bench):
@@ -85,20 +102,25 @@ class Play_Card_Select(Select):
                     self.player.view.clear_items()
                     action_select = Generic_Select(placeholder="Place energy where?", options = options)
                     self.player.view.add_item(action_select)
-                    self.player.view.add_item(Retreat_Button(self.game_data, self.player, True))
-                    self.player.view.add_item(End_Turn_Button(self.game_data, self.player, True))
+                    # self.player.view.add_item(Retreat_Button(self.game_data, self.player, True))
+                    # self.player.view.add_item(End_Turn_Button(self.game_data, self.player, True))
+                    self.player.view.add_item(Cancel_Button(self.game_data, self.player))
                     await self.player.message.edit(view=self.player.view)
-                    while not action_select.values:
+                    while not action_select.values and self.player.com != "Cancel":
                         await sleep(0.3)
-                    selected_card = action_select.values[0]
-                if selected_card == "active":
-                    self.player.active.attached_energy.append(self.player.hand.pop(int(self.values[0])))
-                    await game_msg(self.game_data.info_thread, f"{self.player.user.display_name} placed {card.name} on {self.player.active.name}")
-                else:
-                    self.player.bench[int(selected_card)].attached_energy.append(self.player.hand.pop(int(self.values[0])))
-                    await game_msg(self.game_data.info_thread, f"{self.player.user.display_name} placed {card.name} on {self.player.bench[int(selected_card)].name}")
-                self.player.energy = True
-                
+                    if self.player.com == "Cancel":
+                        self.player.com = "Idle"
+                        return
+                    else:
+                        selected_card = action_select.values[0]
+                if selected_card:
+                    if selected_card == "active":
+                        self.player.active.attached_energy.append(self.player.hand.pop(int(self.values[0])))
+                        await game_msg(self.game_data.info_thread, f"{self.player.user.display_name} placed {card.name} on {self.player.active.name}")
+                    else:
+                        self.player.bench[int(selected_card)].attached_energy.append(self.player.hand.pop(int(self.values[0])))
+                        await game_msg(self.game_data.info_thread, f"{self.player.user.display_name} placed {card.name} on {self.player.bench[int(selected_card)].name}")
+                    self.player.energy = True
             elif card.supertype == "Trainer":
                 pass
             elif card.supertype == "Pok\u00e9mon":
@@ -107,6 +129,7 @@ class Play_Card_Select(Select):
                     await game_msg(self.game_data.info_thread, f"{self.player.user.display_name} placed {card.name} onto their bench", File(fp=generate_card(card), filename="card.png"))
                 else:
                     options: list[SelectOption] = []
+                    selected_card = None
                     if card.evolvesFrom == self.player.active.name:
                         options.append(SelectOption(label=f"{self.player.active.name} - Active", value="active"))
                     for field_card_no, field_card in enumerate(self.player.bench):
@@ -118,21 +141,25 @@ class Play_Card_Select(Select):
                         self.player.view.clear_items()
                         action_select = Generic_Select(placeholder="Select a pokemon to evolve", options = options)
                         self.player.view.add_item(action_select)
-                        self.player.view.add_item(Retreat_Button(self.game_data, self.player, True))
-                        self.player.view.add_item(End_Turn_Button(self.game_data, self.player, True))
+                        # self.player.view.add_item(Retreat_Button(self.game_data, self.player, True))
+                        # self.player.view.add_item(End_Turn_Button(self.game_data, self.player, True))
+                        self.player.view.add_item(Cancel_Button(self.game_data, `self.player))
                         await self.player.message.edit(view=self.player.view)
-                        while not action_select.values:
+                        while not action_select.values and self.player.com != "Cancel":
                             await sleep(0.3)
-                        selected_card = action_select.values[0]
-                    if selected_card == "active":
-                        evolve(card, self.player.active)
-                        self.player.active = self.player.hand.pop(int(self.values[0]))
-                    else:
-                        evolve(card, self.player.bench[int(selected_card)])
-                        self.player.bench[int(selected_card)] = self.player.hand.pop(int(self.values[0]))
-                    await game_msg(self.game_data.info_thread, f"{self.player.user.display_name} evolved their pokemon into {card.name}", File(fp=generate_card(card), filename="card.png"))
-                        
-                
+                        if self.player.com == "Cancel":
+                            self.player.com = "Idle"
+                            return
+                        else:
+                            selected_card = action_select.values[0]
+                    if selected_card:
+                        if selected_card == "active":
+                            evolve(card, self.player.active)
+                            self.player.active = self.player.hand.pop(int(self.values[0]))
+                        else:
+                            evolve(card, self.player.bench[int(selected_card)])
+                            self.player.bench[int(selected_card)] = self.player.hand.pop(int(self.values[0]))
+                        await game_msg(self.game_data.info_thread, f"{self.player.user.display_name} evolved their pokemon into {card.name}", File(fp=generate_card(card), filename="card.png"))
             turn_view(self.game_data, self.player)
             await redraw_player(self.game_data, self.player)
             
