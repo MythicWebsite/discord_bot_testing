@@ -2,7 +2,7 @@ from discord.components import SelectOption
 from discord.ui import Button, Select, View
 from modules.pokemon_tcg.game_classes import PokeGame, PokePlayer, PokeCard
 from modules.pokemon_tcg.game_images import generate_hand_image, generate_zone_image, generate_card
-from modules.pokemon_tcg.thread_channel import game_msg
+from modules.pokemon_tcg.poke_messages import game_msg, hand_msg, lock_msg
 from modules.pokemon_tcg.poke_game_buttons import turn_view
 from discord import Interaction, File, Embed
 from random import randint
@@ -91,6 +91,7 @@ class DrawFromMulligan(Button):
         await ctx.response.defer()
         if not self.disabled:
             self.disabled = True
+            await lock_msg(self.player)
             if self.amount > 0:
                 await self.player.draw(self.amount)
             if self.game_data.players[1 - self.player.p_num].com == "ReadyForSelect":
@@ -99,7 +100,8 @@ class DrawFromMulligan(Button):
                 player.view.clear_items()
                 if player.com == "SetupComplete":
                     player.view.add_item(Button(label = "Waiting...", disabled = True))
-                    await player.message.edit(attachments=[File(fp=generate_hand_image(player.hand), filename="hand.png")], view=player.view)
+                    await hand_msg(ctx, player, File(fp=generate_hand_image(player.hand), filename="hand.png"))
+                    # await player.message.edit(attachments=[File(fp=generate_hand_image(player.hand), filename="hand.png")], view=player.view)
                 elif player.com == "WaitMulligan":
                     await player.mulligan(File(fp=generate_hand_image(player.hand), filename="hand.png"))
                     if player.basics_in_hand() != 0:
@@ -110,7 +112,8 @@ class DrawFromMulligan(Button):
                 else:
                     for amount in range(3):
                         player.view.add_item(DrawFromMulligan(self.game_data, player, amount))
-                await player.message.edit(attachments=[File(fp=generate_hand_image(player.hand), filename="hand.png")], view=player.view)
+                await hand_msg(ctx, player, File(fp=generate_hand_image(player.hand), filename="hand.png"))
+                # await player.message.edit(attachments=[File(fp=generate_hand_image(player.hand), filename="hand.png")], view=player.view)
                 await self.game_data.zone_msg[i].edit(attachments=[File(fp=generate_zone_image(self.game_data, player), filename="zone.jpeg")])
         
         
@@ -127,6 +130,7 @@ class Select_Startup_Active(Select):
         await ctx.response.defer()
         if not self.disabled:
             self.disabled = True
+            await lock_msg(self.player)
             self.player.active = self.player.hand.pop(int(self.values[0]))
             self.player.com = "SelectBench"
             if self.game_data.players[1 - self.player.p_num].com in ["SelectBench", "WaitMulligan","SetupComplete"]:
@@ -141,12 +145,14 @@ class Select_Startup_Active(Select):
                         if player.basics_in_hand() != 0:
                             player.com = "ReadyForSelect"
                     if player.com != "SetupComplete":
-                        await player.message.edit(attachments=[File(fp=generate_hand_image(player.hand), filename="hand.png")], view=player.view)
+                        await hand_msg(ctx, player, File(fp=generate_hand_image(player.hand), filename="hand.png"))
+                        # await player.message.edit(attachments=[File(fp=generate_hand_image(player.hand), filename="hand.png")], view=player.view)
                         await self.game_data.zone_msg[i].edit(attachments=[File(fp=generate_zone_image(self.game_data, player), filename="zone.jpeg")])     
             else:
                 self.player.view.clear_items()
                 self.player.view.add_item(Button(label = "Waiting...", disabled = True))
-                await self.player.message.edit(attachments=[File(fp=generate_hand_image(self.player.hand), filename="hand.png")], view=self.player.view)
+                await hand_msg(ctx, self.player, File(fp=generate_hand_image(self.player.hand), filename="hand.png"))
+                # await self.player.message.edit(attachments=[File(fp=generate_hand_image(self.player.hand), filename="hand.png")], view=self.player.view)
 
              
 class Select_Startup_Bench(Select):
@@ -165,12 +171,14 @@ class Select_Startup_Bench(Select):
         await ctx.response.defer()
         if not self.disabled:
             self.disabled = True
+            await lock_msg(self.player)
             if self.values[0] != "done":
                 self.player.bench.append(self.player.hand.pop(int(self.values[0])))
                 self.player.view.clear_items()
                 self.player.view.add_item(Select_Startup_Bench(self.game_data, self.player))
                 await self.game_data.zone_msg[self.player.p_num].edit(attachments=[File(fp=generate_zone_image(self.game_data, self.player), filename="zone.jpeg")])
-                await self.player.message.edit(attachments=[File(fp=generate_hand_image(self.player.hand), filename="hand.png")], view=self.player.view)
+                await hand_msg(ctx, self.player, File(fp=generate_hand_image(self.player.hand), filename="hand.png"))
+                # await self.player.message.edit(attachments=[File(fp=generate_hand_image(self.player.hand), filename="hand.png")], view=self.player.view)
                 await game_msg(self.game_data.info_thread, f"{self.player.user.display_name} has placed a benched pokemon")
             elif self.values[0] == "done":
                 self.player.com = "SetupComplete"
@@ -183,6 +191,7 @@ class Select_Startup_Bench(Select):
                             self.game_data.turn = 1
                         await player.make_prizes()
                         if player != self.game_data.active:
+                            player.view.add_item(Button(label = "Waiting...", disabled = True))
                             await player.message.edit(view=player.view)
                         await self.game_data.zone_msg[i].edit(attachments=[File(fp=generate_zone_image(self.game_data, player), filename="zone.jpeg")])
                         await game_msg(self.game_data.info_thread, f"{player.user.display_name} reveals their active pokemon", File(fp=generate_card(player.active), filename="active_pokemon.png"))
@@ -220,6 +229,9 @@ class Refresh_Hand_Button(Button):
                     player = user
             if player:
                 self.disabled = True
-                await player.message.delete()
+                try:
+                    await player.message.delete()
+                except:
+                    pass
                 player.message = await ctx.followup.send(file=File(fp=generate_hand_image(player.hand), filename="hand.png"), view=player.view, ephemeral=True)
                 self.disabled = False

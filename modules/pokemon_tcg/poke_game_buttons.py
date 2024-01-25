@@ -2,7 +2,7 @@ from discord.components import SelectOption
 from discord.ui import Button, Select
 from modules.pokemon_tcg.game_classes import PokeGame, PokePlayer, PokeCard, evolve
 from modules.pokemon_tcg.game_images import generate_hand_image, generate_zone_image, generate_card
-from modules.pokemon_tcg.thread_channel import game_msg
+from modules.pokemon_tcg.poke_messages import game_msg, hand_msg, lock_msg
 from discord import Interaction, File
 from logging import getLogger
 from asyncio import sleep
@@ -52,8 +52,10 @@ class End_Turn_Button(Button):
             await game_msg(self.game_data.info_thread, f"It is now {other_player.user.display_name}'s turn - Turn {self.game_data.turn}")
             await other_player.draw()
             turn_view(self.game_data, other_player)
+            # await hand_msg(ctx, other_player, generate_hand_image(other_player.hand), True)
+            await hand_msg(ctx, self.player, File(fp=generate_hand_image(self.player.hand), filename="hand.png"), True)
             await other_player.message.edit(attachments=[File(fp=generate_hand_image(other_player.hand), filename="hand.png")], view=other_player.view)
-            await self.player.message.edit(view=self.player.view)
+            # await self.player.message.edit(view=self.player.view)
             for i, msg in enumerate(self.game_data.zone_msg):
                 await msg.edit(attachments=[File(fp=generate_zone_image(self.game_data, self.game_data.players[i]), filename="zone.jpeg")])
             
@@ -70,6 +72,7 @@ class Play_Card_Select(Select):
         await ctx.response.defer()
         if not self.disabled:
             self.disabled = True
+            await lock_msg(self.player)
             card: PokeCard = self.player.hand[int(self.values[0])]
             if card.supertype == "Energy":
                 options: list[SelectOption] = []

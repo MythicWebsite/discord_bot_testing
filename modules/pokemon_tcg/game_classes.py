@@ -1,5 +1,5 @@
 from discord import User, Message, Thread, TextChannel, File
-from modules.pokemon_tcg.thread_channel import game_msg
+from modules.pokemon_tcg.poke_messages import game_msg
 from discord.ui import View
 from random import shuffle
 import logging
