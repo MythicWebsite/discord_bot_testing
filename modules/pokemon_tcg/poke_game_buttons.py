@@ -129,6 +129,7 @@ class Play_Card_Select(Select):
                     
             #Resolve playing Trainer cards
             elif card.supertype == "Trainer":
+                self.player.com = "Playing"
                 self.player.temp = self.player.hand.pop(int(self.values[0]))
                 await game_msg(self.game_data.info_thread, f"{self.player.user.display_name} played {card.name}")
                 await do_rule(self.game_data, self.player, card, "play")
@@ -244,9 +245,10 @@ def turn_view(game_data: PokeGame, player: PokePlayer):
     game_data.players[1-player.p_num].view.clear_items()
     game_data.players[1-player.p_num].view.add_item(Button(label = "Waiting...", disabled = True))
 
-async def redraw_player(game_data: PokeGame, player: PokePlayer, msg_type: str = None):
-    if player == game_data.active:
-        turn_view(game_data, player)
+async def redraw_player(game_data: PokeGame, player: PokePlayer, msg_type: str = None, buttons: bool = True):
+    if buttons:
+        if player == game_data.active:
+            turn_view(game_data, player)
     if msg_type == "hand" or msg_type == None:
         await player.message.edit(attachments=[File(fp=generate_hand_image(player.hand), filename="hand.png")], view=player.view)
     if msg_type == "zone" or msg_type == None:

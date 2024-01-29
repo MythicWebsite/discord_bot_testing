@@ -68,7 +68,7 @@ class Poke_Join_Button(Button):
         return deck
     
     def create_bad_temp_deck(self):
-        with open("data/pokemon_data/mull_deck.json", encoding="utf-8") as f:
+        with open("data/bad_deck.json", encoding="utf-8") as f:
             deck_data = json.load(f)["base1"]
         with open(f"data/pokemon_data/cards.json", encoding="utf-8") as f:
                 set_data = json.load(f)

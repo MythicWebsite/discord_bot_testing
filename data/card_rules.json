@@ -11,8 +11,10 @@
         "base1-71":{
             "play": [
                 {
-                    "action": "discard",
+                    "action": "search",
                     "amount": 2,
+                    "from_loc": "hand",
+                    "to_loc": "discard",
                     "choice": true
                 },
                 {
@@ -50,10 +52,11 @@
         "base1-74":{
             "play": [
                 {
-                    "action": "discard",
-                    "target": "self",
-                    "choice": true,
-                    "amount": "2"
+                    "action": "search",
+                    "amount": 2,
+                    "from_loc": "hand",
+                    "to_loc": "temp_discard",
+                    "choice": true
                 },
                 {
                     "action": "search",
@@ -174,9 +177,11 @@
         "base1-81":{
             "play": [
                 {
-                    "action": "discard",
-                    "target": "self",
-                    "amount": 1
+                    "action": "search",
+                    "amount": 1,
+                    "from_loc": "hand",
+                    "to_loc": "temp_discard",
+                    "choice": true
                 },
                 {
                     "action": "search",
@@ -281,9 +286,8 @@
         "base1-88":{
             "play": [
                 {
-                    "action": "discard",
-                    "target": "self",
-                    "amount": "all"
+                    "action": "discard_hand",
+                    "target": "self"
                 },
                 {
                     "action": "draw",

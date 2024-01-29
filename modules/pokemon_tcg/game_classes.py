@@ -58,6 +58,7 @@ class PokePlayer():
         self.prize: list[PokeCard] = []
         self.discard: list[PokeCard] = []
         self.temp: PokeCard = None
+        self.temp_choices: list[PokeCard] = []
         self.stadium: PokeCard = None
         self.energy: bool = False
         self.message: Message = None

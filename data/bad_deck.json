@@ -1,0 +1,63 @@
+{
+    "base1": {
+        "d-base1-1": {
+            "id": "d-base1-1",
+            "name": "2-Player Starter Set",
+            "types": [
+                "Fire",
+                "Fighting",
+                "Colorless"
+            ],
+            "cards": [
+                {
+                    "id": "base1-47",
+                    "name": "Diglett",
+                    "rarity": "Common",
+                    "count": 14
+                },
+                {
+                    "id": "base1-60",
+                    "name": "Ponyta",
+                    "rarity": "Common",
+                    "count": 14
+                },
+                {
+                    "id": "base1-46",
+                    "name": "Charmander",
+                    "rarity": "Common",
+                    "count": 14
+                },
+                {
+                    "id": "base1-24",
+                    "name": "Charmeleon",
+                    "rarity": "Uncommon",
+                    "count": 14
+                },
+                {
+                    "id": "base1-91",
+                    "name": "Bill",
+                    "rarity": "Common",
+                    "count": 14
+                },
+                {
+                    "id": "base1-93",
+                    "name": "Gust of Wind",
+                    "rarity": "Common",
+                    "count": 14
+                },
+                {
+                    "id": "base1-95",
+                    "name": "Switch",
+                    "rarity": "Common",
+                    "count": 14
+                },
+                {
+                    "id": "base1-98",
+                    "name": "Fire Energy",
+                    "count": 14
+                }
+            ],
+            "set": "base1"
+        }
+    }
+}
