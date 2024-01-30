@@ -13,25 +13,25 @@
                     "id": "base1-47",
                     "name": "Diglett",
                     "rarity": "Common",
-                    "count": 14
+                    "count": 6
                 },
                 {
                     "id": "base1-60",
                     "name": "Ponyta",
                     "rarity": "Common",
-                    "count": 14
+                    "count": 6
                 },
                 {
                     "id": "base1-46",
                     "name": "Charmander",
                     "rarity": "Common",
-                    "count": 14
+                    "count": 6
                 },
                 {
                     "id": "base1-24",
                     "name": "Charmeleon",
                     "rarity": "Uncommon",
-                    "count": 14
+                    "count": 3
                 },
                 {
                     "id": "base1-91",
@@ -40,21 +40,31 @@
                     "count": 14
                 },
                 {
+                    "id": "base1-71",
+                    "name": "Computer Search",
+                    "count": 14
+                },
+                {
+                    "id": "base1-74",
+                    "name": "Item Finder",
+                    "count": 14
+                },
+                {
                     "id": "base1-93",
                     "name": "Gust of Wind",
                     "rarity": "Common",
-                    "count": 14
+                    "count": 3
                 },
                 {
                     "id": "base1-95",
                     "name": "Switch",
                     "rarity": "Common",
-                    "count": 14
+                    "count": 3
                 },
                 {
                     "id": "base1-98",
                     "name": "Fire Energy",
-                    "count": 14
+                    "count": 3
                 }
             ],
             "set": "base1"

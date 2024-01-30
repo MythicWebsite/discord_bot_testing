@@ -15,7 +15,7 @@
                     "amount": 2,
                     "from_loc": "hand",
                     "to_loc": "discard",
-                    "choice": true
+                    "choice": "self"
                 },
                 {
                     "action": "search",
@@ -56,14 +56,15 @@
                     "amount": 2,
                     "from_loc": "hand",
                     "to_loc": "temp_discard",
-                    "choice": true
+                    "choice": "self"
                 },
                 {
                     "action": "search",
                     "from_loc": "discard",
                     "to_loc": "hand",
+                    "no_min": true,
                     "specific_amount":{
-                        "trainer": 1
+                        "Trainer": 1
                     }
                 }
             ]
@@ -82,7 +83,7 @@
                     "from_loc": "hand",
                     "to_loc": "deck",
                     "specific_amount":{
-                        "trainer": "all"
+                        "Trainer": "all"
                     }
                 },
                 {
@@ -91,7 +92,7 @@
                     "from_loc": "hand",
                     "to_loc": "deck",
                     "specific_amount":{
-                        "trainer": "all"
+                        "Trainer": "all"
                     }
                 }
             ]
@@ -112,7 +113,7 @@
                     "from_loc":"hand",
                     "to_loc": "deck",
                     "specific_amount":{
-                        "Pokemon": 1
+                        "Pok\u00e9mon": 1
                     }
                 },
                 {
@@ -120,7 +121,7 @@
                     "from_loc":"deck",
                     "to_loc": "hand",
                     "specific_amount":{
-                        "Pokemon": 1
+                        "Pok\u00e9mon": 1
                     }
                 }
             ]
@@ -181,14 +182,14 @@
                     "amount": 1,
                     "from_loc": "hand",
                     "to_loc": "temp_discard",
-                    "choice": true
+                    "choice": "self"
                 },
                 {
                     "action": "search",
                     "from_loc":"discard",
                     "to_loc": "hand",
                     "specific_amount":{
-                        "energy": 2
+                        "Energy": 2
                     },
                     "up_to": true
                 }
@@ -321,7 +322,7 @@
                     "action": "remove",
                     "target": "self",
                     "specific_amount":{
-                        "energy": 1
+                        "Energy": 1
                     }
                 },
                 {
@@ -347,7 +348,7 @@
                     "action": "remove",
                     "target": "opponent",
                     "specific_amount":{
-                        "energy": 1
+                        "Energy": 1
                     }
                 }
             ]
