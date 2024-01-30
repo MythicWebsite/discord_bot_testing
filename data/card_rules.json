@@ -21,7 +21,8 @@
                     "action": "search",
                     "amount": 1,
                     "from_loc": "deck",
-                    "to_loc": "hand"
+                    "to_loc": "hand",
+                    "reveal": false
                 }
             ]
         },
@@ -62,7 +63,6 @@
                     "action": "search",
                     "from_loc": "discard",
                     "to_loc": "hand",
-                    "no_min": true,
                     "specific_amount":{
                         "Trainer": 1
                     }

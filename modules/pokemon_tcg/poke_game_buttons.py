@@ -250,6 +250,7 @@ async def redraw_player(game_data: PokeGame, player: PokePlayer, msg_type: str =
         if player == game_data.active:
             turn_view(game_data, player)
     if msg_type == "hand" or msg_type == None:
+        player.hand.sort(key = lambda x: (x.supertype, x.types, x.name))
         await player.message.edit(attachments=[File(fp=generate_hand_image(player.hand), filename="hand.png")], view=player.view)
     if msg_type == "zone" or msg_type == None:
         await game_data.zone_msg[player.p_num].edit(attachments=[File(fp=generate_zone_image(game_data, player), filename="zone.jpeg")])

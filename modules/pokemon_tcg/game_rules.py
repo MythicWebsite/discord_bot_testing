@@ -1,7 +1,6 @@
 from modules.pokemon_tcg.game_classes import PokeCard, PokePlayer, PokeGame
-# from discord.ui import Button, Select
+from discord.ui import Button
 from discord.components import SelectOption
-# from modules.pokemon_tcg.generic_buttons import Generic_Select
 from modules.pokemon_tcg.rule_buttons import Switch_Select, Search_Select
 from copy import deepcopy
 import modules.pokemon_tcg.poke_game_buttons as edit_view
@@ -13,7 +12,6 @@ def rule_playable(game_data:PokeGame, player:PokePlayer, card:PokeCard, rule_typ
         if rule["action"] == "draw":
             if rule.get("target", "self") == "self":
                 if len(player.deck) < rule.get("amount", 1):
-                    print(len(player.deck))
                     return False
             elif rule.get("target", "self") == "opponent":
                 if len(game_data.players[1 - player.p_num].deck) < rule.get("amount", 1):
@@ -32,10 +30,15 @@ def rule_playable(game_data:PokeGame, player:PokePlayer, card:PokeCard, rule_typ
                 else:
                     target_player = game_data.players[1 - player.p_num]
                 from_loc = get_location(target_player, rule.get("from_loc", None))
-                if rule.get("specific_amount", False):
+                if rule.get("specific_amount", None) is not None:
+                    print(len(from_loc))
+                    if len(from_loc) == 0:
+                        return False
                     if not check_specifics(from_loc, rule["specific_amount"]):
                         return False
-            if len(from_loc) < rule.get("amount", 1):
+            if len(from_loc) < rule.get("amount", 1) and rule.get("from_loc", None) != "hand":
+                return False
+            elif len(from_loc) - 1 < rule.get("amount", 1):
                 return False
             else:
                 return True
@@ -109,18 +112,18 @@ async def do_rule(game_data:PokeGame, player:PokePlayer, card:PokeCard = None, r
         elif rules[0]["action"] == "search":
             await search_rule(game_data, player, rules)
     else:
-        for p in game_data.players:
-            if len(p.temp_choices) > 0 or p.temp:
-                if p.temp:
-                    p.discard.append(p.temp)
-                    p.temp = None
-                for _ in p.temp_choices:
-                    p.discard.append(p.temp_choices.pop())
-                await edit_view.redraw_player(game_data, p, msg_type = "zone")
-            if game_data.active == p:
-                edit_view.turn_view(game_data, p)
-                await p.message.edit(view = p.view)
-        p.com = "Idle"
+        for player in game_data.players:
+            if len(player.temp_discard) > 0 or player.temp:
+                if player.temp:
+                    player.discard.append(player.temp)
+                    player.temp = None
+                for _ in player.temp_discard:
+                    player.discard.append(player.temp_discard.pop())
+                await edit_view.redraw_player(game_data, player, msg_type = "zone")
+            if game_data.active == player:
+                edit_view.turn_view(game_data, player)
+                await player.message.edit(view = player.view)
+        player.com = "Idle"
   
 async def draw_rule(game_data:PokeGame, player:PokePlayer, rules: list[dict]):
     target = rules[0].get("target", "self")
@@ -143,6 +146,8 @@ async def switch_rule(game_data:PokeGame, player:PokePlayer, rules: list[dict]):
     choosing_player = player if choice == "self" else game_data.players[1 - player.p_num]
     choosing_player.view.clear_items()
     choosing_player.view.add_item(Switch_Select(game_data, choosing_player, "Choose a pokemon to switch", options, rules))
+    choosing_player.view.add_item(Button(label = "Retreat", disabled = True))
+    choosing_player.view.add_item(Button(label = "End Turn", disabled = True))
     await choosing_player.message.edit(view = choosing_player.view)
 
 def get_location(player: PokePlayer, location: str):
@@ -157,7 +162,7 @@ def get_location(player: PokePlayer, location: str):
     elif location == "prize":
         return player.prize
     elif location == "temp_discard":
-        return player.temp_choices
+        return player.temp_discard
 
 async def search_rule(game_data:PokeGame, player:PokePlayer, rules: list[dict]):
     target_player = player if rules[0].get("target", "self") == "self" else game_data.players[1 - player.p_num]
@@ -176,7 +181,6 @@ async def search_rule(game_data:PokeGame, player:PokePlayer, rules: list[dict]):
     if not all_check:
         if specific_amount:
             options = check_specifics(from_loc, specific_amount, return_options = True, no_min = rules[0].get("no_min", False))
-            print(options)
         else:
             options = []
             dupes = []
@@ -187,6 +191,8 @@ async def search_rule(game_data:PokeGame, player:PokePlayer, rules: list[dict]):
         choosing_player = player if rules[0].get("choice","self") == "self" else game_data.players[1 - player.p_num]
         choosing_player.view.clear_items()
         choosing_player.view.add_item(Search_Select(game_data, choosing_player, "Select a card", options, rules, from_loc, to_loc, amount))
+        choosing_player.view.add_item(Button(label = "Retreat", disabled = True))
+        choosing_player.view.add_item(Button(label = "End Turn", disabled = True))
         await choosing_player.message.edit(view = choosing_player.view)
     else:
         for card in from_loc:
@@ -201,6 +207,6 @@ async def search_rule(game_data:PokeGame, player:PokePlayer, rules: list[dict]):
                 check = True
             if check:
                 to_loc.append(from_loc.pop(from_loc.index(card)))
-        await edit_view.redraw_player(game_data, target_player, msg_type = "hand", buttons=False)
+        await edit_view.redraw_player(game_data, target_player, buttons=False)
         await do_rule(game_data, player, rules = rules)
     

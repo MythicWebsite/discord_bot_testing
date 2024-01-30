@@ -100,7 +100,19 @@ def generate_zone_image(game_data: PokeGame, player: PokePlayer):
             for i, energy in enumerate(card.attached_energy):
                 colorless_offset = energy_icon(x, y, zone_image, energy, i, colorless_offset)
         
-        
+    #Set up discard pile
+    if len(player.discard) > 0:
+        font = ImageFont.truetype("data/ARLRDBD.ttf", 60)
+
+        x = zone_image.width - card_width
+        if player.p_num == 0:
+            y = zone_image.height - card_height
+        else:
+            y = 0
+        card_image = Image.open(f"data/pokemon_images/{player.discard[-1].set}/{player.discard[-1].id}.png")
+        zone_image.paste(card_image, (x,y))
+        text_draw = ImageDraw.Draw(zone_image)
+        text_draw.text((x + card_width//2, y + (card_height//5*4)), f"{len(player.discard)}", font=font, anchor="mm", fill=(255,255,255), stroke_width=10, stroke_fill=(0,0,0))
     
     #Set up deck
     if len(player.deck) > 0:
