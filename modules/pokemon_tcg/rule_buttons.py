@@ -90,7 +90,7 @@ class Search_Select(Select):
                             options.append(SelectOption(label=f"{card.name}", value=f"blank_{i}"))
                     
                 self.player.view.clear_items()
-                self.player.view.add_item(Search_Select(self.game_data, self.player, f"Choose a card - {self.amount - 1} left", options, self.rules, self.from_loc, self.to_loc, self.amount - 1))
+                self.player.view.add_item(Search_Select(self.game_data, self.player, f"Send a card to {self.rules[0]['to_loc'] if self.rules[0]['to_loc'] != 'temp_discard' else 'discard'} - {self.amount} left", options, self.rules, self.from_loc, self.to_loc, self.amount - 1))
                 self.player.view.add_item(Button(label = "Retreat", disabled = True))
                 self.player.view.add_item(Button(label = "End Turn", disabled = True))
                 await edit_view.redraw_player(self.game_data, self.player, msg_type = "hand", buttons=False)

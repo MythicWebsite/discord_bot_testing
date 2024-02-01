@@ -188,7 +188,7 @@ async def search_rule(game_data:PokeGame, player:PokePlayer, rules: list[dict]):
                     options.append(SelectOption(label=f"{card.name}", value=f"blank_{i}"))
         choosing_player = player if rules[0].get("choice","self") == "self" else game_data.players[1 - player.p_num]
         choosing_player.view.clear_items()
-        choosing_player.view.add_item(Search_Select(game_data, choosing_player, f"Choose a card - {amount} left", options, rules, from_loc, to_loc, amount))
+        choosing_player.view.add_item(Search_Select(game_data, choosing_player, f"Send a card to {rules[0]['to_loc'] if rules[0]['to_loc'] != 'temp_discard' else 'discard'} - {amount} left", options, rules, from_loc, to_loc, amount))
         choosing_player.view.add_item(Button(label = "Retreat", disabled = True))
         choosing_player.view.add_item(Button(label = "End Turn", disabled = True))
         await choosing_player.message.edit(view = choosing_player.view)
