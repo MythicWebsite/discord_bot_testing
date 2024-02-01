@@ -1,4 +1,4 @@
-from discord import File, Thread, Interaction, Message
+from discord import File, Thread, Interaction, Message, ComponentType
 from discord.ui import Button, Select, View
 from datetime import datetime
 
@@ -21,10 +21,10 @@ async def hand_msg(ctx: Interaction, player:Fake_Player, image: File, refresh: b
         await player.message.edit(attachments=[image], view = player.view)
     
 async def lock_msg(player:Fake_Player):
-    for comp in player.message.components:
-        if type(comp) == Button or type(comp) == Select:
+    for comp in player.view.children:
+        if comp.type in [ComponentType.button, ComponentType.select]:
             comp.disabled = True
-        if type(comp) == Select:
-            comp.placeholder = "thinking..."
+        if comp.type == ComponentType.select:
+            comp.placeholder = "Thinking..."
     await player.message.edit(view = player.view)
     

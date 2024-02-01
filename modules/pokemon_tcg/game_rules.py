@@ -24,24 +24,22 @@ def rule_playable(game_data:PokeGame, player:PokePlayer, card:PokeCard, rule_typ
                 if len(game_data.players[1 - player.p_num].bench) == 0:
                     return False
         elif rule["action"] == "search":
+            if rule.get("target", "self") == "self":
+                target_player = player
+            else:
+                target_player = game_data.players[1 - player.p_num]
+            from_loc = get_location(target_player, rule.get("from_loc", None))
             if rule.get("from_loc", None) == "hand" or rule.get("from_loc", None) == "discard" or rule.get("from_loc", None) == "bench":
-                if rule.get("target", "self") == "self":
-                    target_player = player
-                else:
-                    target_player = game_data.players[1 - player.p_num]
-                from_loc = get_location(target_player, rule.get("from_loc", None))
                 if rule.get("specific_amount", None) is not None:
-                    print(len(from_loc))
                     if len(from_loc) == 0:
                         return False
                     if not check_specifics(from_loc, rule["specific_amount"]):
                         return False
-            if len(from_loc) < rule.get("amount", 1) and rule.get("from_loc", None) != "hand":
-                return False
-            elif len(from_loc) - 1 < rule.get("amount", 1):
-                return False
-            else:
-                return True
+            if rule.get("amount", 0) != "all":
+                if len(from_loc) < rule.get("amount", 1) and rule.get("from_loc", None) != "hand":
+                    return False
+                elif len(from_loc) - 1 < rule.get("amount", 1) and rule.get("from_loc", None) == "hand":
+                    return False
     return True
 
 def card_type_playable(game_data: PokeGame, player: PokePlayer, card: PokeCard ):
@@ -190,7 +188,7 @@ async def search_rule(game_data:PokeGame, player:PokePlayer, rules: list[dict]):
                     options.append(SelectOption(label=f"{card.name}", value=f"blank_{i}"))
         choosing_player = player if rules[0].get("choice","self") == "self" else game_data.players[1 - player.p_num]
         choosing_player.view.clear_items()
-        choosing_player.view.add_item(Search_Select(game_data, choosing_player, "Select a card", options, rules, from_loc, to_loc, amount))
+        choosing_player.view.add_item(Search_Select(game_data, choosing_player, f"Choose a card - {amount} left", options, rules, from_loc, to_loc, amount))
         choosing_player.view.add_item(Button(label = "Retreat", disabled = True))
         choosing_player.view.add_item(Button(label = "End Turn", disabled = True))
         await choosing_player.message.edit(view = choosing_player.view)

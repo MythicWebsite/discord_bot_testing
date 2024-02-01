@@ -4,9 +4,8 @@ from discord.ui import Button, Select, View
 from modules.pokemon_tcg.game_classes import PokeGame, PokePlayer, PokeCard, evolve
 from modules.pokemon_tcg.game_images import generate_hand_image, generate_zone_image, generate_card
 from modules.pokemon_tcg.poke_messages import game_msg, hand_msg, lock_msg
-from modules.pokemon_tcg.game_rules import rule_playable, do_rule, card_type_playable
+from modules.pokemon_tcg.game_rules import do_rule, card_type_playable
 from modules.pokemon_tcg.generic_buttons import Generic_Select
-from copy import deepcopy
 from discord import Interaction, File
 from logging import getLogger
 from asyncio import sleep
