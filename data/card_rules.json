@@ -287,8 +287,11 @@
         "base1-88":{
             "play": [
                 {
-                    "action": "discard_hand",
-                    "target": "self"
+                    "action": "search",
+                    "target": "self",
+                    "from_loc": "hand",
+                    "to_loc": "discard",
+                    "amount": "all"
                 },
                 {
                     "action": "draw",

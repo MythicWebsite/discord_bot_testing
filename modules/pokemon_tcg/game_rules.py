@@ -2,8 +2,10 @@ from modules.pokemon_tcg.game_classes import PokeCard, PokePlayer, PokeGame
 from discord.ui import Button
 from discord.components import SelectOption
 from modules.pokemon_tcg.rule_buttons import Switch_Select, Search_Select
+from modules.pokemon_tcg.poke_messages import game_msg
 from copy import deepcopy
 import modules.pokemon_tcg.poke_game_buttons as edit_view
+from random import shuffle
 
 def rule_playable(game_data:PokeGame, player:PokePlayer, card:PokeCard, rule_type:str) -> bool:
     if not card.rules.get(rule_type, None):
@@ -176,6 +178,8 @@ async def search_rule(game_data:PokeGame, player:PokePlayer, rules: list[dict]):
                 all_check = True
             else:
                 amount += specific_amount[option]
+    elif amount == "all":
+        all_check = True
     if not all_check:
         if specific_amount:
             options = check_specifics(from_loc, specific_amount, return_options = True, no_min = rules[0].get("no_min", False))
@@ -192,7 +196,7 @@ async def search_rule(game_data:PokeGame, player:PokePlayer, rules: list[dict]):
         choosing_player.view.add_item(Button(label = "Retreat", disabled = True))
         choosing_player.view.add_item(Button(label = "End Turn", disabled = True))
         await choosing_player.message.edit(view = choosing_player.view)
-    else:
+    elif specific_amount:
         for card in from_loc:
             check = False
             if card.supertype in specific_amount:
@@ -205,6 +209,14 @@ async def search_rule(game_data:PokeGame, player:PokePlayer, rules: list[dict]):
                 check = True
             if check:
                 to_loc.append(from_loc.pop(from_loc.index(card)))
+        await edit_view.redraw_player(game_data, target_player, buttons=False)
+        await do_rule(game_data, player, rules = rules)
+    else:
+        for _ in range(len(from_loc)):
+            to_loc.append(from_loc.pop())
+        if rules[0].get("to_loc", "hand") == "deck":
+            shuffle(to_loc)
+        await game_msg(game_data.info_thread, f"{player.user.display_name} sent all cards from their {rules[0]['from_loc']} to their {rules[0]['to_loc']}")
         await edit_view.redraw_player(game_data, target_player, buttons=False)
         await do_rule(game_data, player, rules = rules)
     

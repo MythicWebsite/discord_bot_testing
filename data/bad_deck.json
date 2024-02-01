@@ -65,6 +65,11 @@
                     "id": "base1-98",
                     "name": "Fire Energy",
                     "count": 3
+                },
+                {
+                    "id": "base1-88",
+                    "name": "Oak",
+                    "count": 14
                 }
             ],
             "set": "base1"

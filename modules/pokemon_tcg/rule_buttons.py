@@ -84,6 +84,7 @@ class Search_Select(Select):
                 else:
                     options = []
                     dupes = []
+                    self.amount -= 1
                     for i, card in enumerate(self.from_loc):
                         if card.name not in dupes:
                             dupes.append(card.name)
