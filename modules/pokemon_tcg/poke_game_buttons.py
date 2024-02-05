@@ -9,6 +9,7 @@ from modules.pokemon_tcg.generic_buttons import Generic_Select
 from discord import Interaction, File
 from logging import getLogger
 from asyncio import sleep
+from copy import deepcopy
 
 logger = getLogger("discord")
 
@@ -195,20 +196,45 @@ class Use_Ability_Select(Select):
             
             
 class Attack_Select(Select):
-    def __init__(self, game_data: PokeGame, player: PokePlayer):
-        super().__init__(placeholder = "Use an attack", options = [])
+    def __init__(self, game_data: PokeGame, player: PokePlayer, options: list[SelectOption]):
+        super().__init__(placeholder = "Use an attack", options = options)
         self.game_data = game_data
         self.player = player
-        if self.player.active:
-            if True: #Determine if active card has an attack that can be used
-                self.options.append(SelectOption(label=self.player.active["name"], value="active"))
+        if options[0].value == "None":
+            self.disabled = True
     
     async def callback(self, ctx: Interaction):
         await ctx.response.defer()
         if not self.disabled:
             self.disabled = True
             
-            
+
+def check_attack(game_data: PokeGame):
+    player = game_data.active
+    card = player.active
+    if card.attacks:
+        available_attacks = []
+        attacks = deepcopy(card.attacks)
+        for attack_no, attack in enumerate(attacks):
+            cost: list = deepcopy(attack.get("cost", []))
+            attack["attack_no"] = attack_no
+            if cost:
+                for energy in card.attached_energy:
+                    energy_name = energy.name.split(" Energy")[0]
+                    if energy_name in cost:
+                        cost.remove(energy_name)
+                    elif "Colorless" in cost:
+                        cost.remove("Colorless")
+                        if energy_name == "Double Colorless Energy" and "Colorless" in cost:
+                            cost.remove(energy_name)
+                if len(cost) == 0:
+                    available_attacks.append(attack)
+            else:
+                available_attacks.append(attack)
+        if available_attacks:
+            return available_attacks
+    return False
+
 class Inspect_Played_Card_Select(Select):
     def __init__(self, game_data: PokeGame, player: PokePlayer):
         super().__init__(placeholder = "Inspect a card in play", options = [])
@@ -239,17 +265,25 @@ def turn_view(game_data: PokeGame, player: PokePlayer):
     if len(options) == 0:
         options.append(SelectOption(label="No cards to play", value="None"))
     player.view.add_item(Play_Card_Select(game_data, player, options))
+    options = []
+    attacks = check_attack(game_data)
+    if attacks: #Determine if active card has an attack that can be used
+        for option in attacks:
+            options.append(SelectOption(label=option["name"], value=str(option["attack_no"])))
+    if len(options) == 0:
+        options.append(SelectOption(label="No attacks to use", value="None"))
+    player.view.add_item(Attack_Select(game_data, player, options))
     player.view.add_item(Retreat_Button(game_data, player, True))
     player.view.add_item(End_Turn_Button(game_data, player))
     game_data.players[1-player.p_num].view.clear_items()
     game_data.players[1-player.p_num].view.add_item(Button(label = "Waiting...", disabled = True))
 
 async def redraw_player(game_data: PokeGame, player: PokePlayer, msg_type: str = None, buttons: bool = True):
-    if buttons:
-        if player == game_data.active:
-            turn_view(game_data, player)
     if msg_type == "hand" or msg_type == None:
         player.hand.sort(key = lambda x: (x.supertype, x.types, x.name))
+        if buttons:
+            if player == game_data.active:
+                turn_view(game_data, player)
         await player.message.edit(attachments=[File(fp=generate_hand_image(player.hand), filename="hand.png")], view=player.view)
     if msg_type == "zone" or msg_type == None:
         await game_data.zone_msg[player.p_num].edit(attachments=[File(fp=generate_zone_image(game_data, player), filename="zone.jpeg")])
