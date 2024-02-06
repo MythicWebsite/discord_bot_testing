@@ -4,12 +4,16 @@ from modules.pokemon_tcg.game_classes import PokeGame, PokePlayer, PokeCard, evo
 from modules.pokemon_tcg.game_images import generate_hand_image, generate_zone_image, generate_card
 from modules.pokemon_tcg.poke_messages import game_msg, hand_msg, lock_msg
 from modules.pokemon_tcg.game_rules import do_rule, card_type_playable
+from modules.pokemon_tcg.rule_buttons import Switch_Select
 from discord import Interaction, File
 from logging import getLogger
 from copy import deepcopy
 
 logger = getLogger("discord")
 
+
+def clamp(value: int, smallest: int, largest: int):
+    return max(smallest, min(value, largest))
 
 class Retreat_Button(Button):
     def __init__(self, game_data: PokeGame, player: PokePlayer, disabled: bool = False):
@@ -209,7 +213,76 @@ class Attack_Select(Select):
         await ctx.response.defer()
         if not self.disabled:
             self.disabled = True
+            await lock_msg(self.player)
+            attack = self.player.active.attacks[int(self.values[0])]
+            damage = calculate_damage(self.game_data, attack)
+            await game_msg(self.game_data.info_thread, f"{self.player.user.display_name} used {attack['name']} for {damage} damage")
+            opponent = self.game_data.players[1-self.player.p_num]
+            defense_mon = opponent.active
+            defense_mon.current_hp = clamp(defense_mon.current_hp - damage, 0, defense_mon.hp)
+            self.game_data.turn += 1
+            for mon in self.player.bench:
+                mon.turn_cooldown = True
+            self.player.active.turn_cooldown = True
+            self.player.energy = False
+            if defense_mon.current_hp == 0:
+                await game_msg(self.game_data.info_thread, f"{opponent.user.display_name}'s {defense_mon.name} fainted! {self.player.user.display_name} takes a prize card")
+                self.player.hand.append(self.player.prize.pop())
+                redraw_player(self.game_data, self.player, msg_type = "zone", buttons=False)
+                redraw_player(self.game_data, opponent, msg_type = "zone", buttons=False)
+                if len(self.player.prize) == 0:
+                    await game_msg(self.game_data.info_thread, f"{self.player.user.display_name} has no cards left in their prize pool, they win!")
+                    self.game_data.winner = self.player
+                    return
+                elif len(opponent.bench) == 0:
+                    await game_msg(self.game_data.info_thread, f"{opponent.user.display_name} has no pokemon left in play, they lose!")
+                    self.game_data.winner = self.player
+                    return
+                elif len(opponent.deck) == 0:
+                    await game_msg(self.game_data.info_thread, f"{opponent.user.display_name} has no cards left in their deck, they lose!")
+                    self.game_data.winner = self.player
+                    return
+                else:
+                    for _ in defense_mon.attached_energy:
+                        self.player.discard.append(defense_mon.attached_energy.pop())
+                    for _ in defense_mon.attached_tools:
+                        self.player.discard.append(defense_mon.attached_tools.pop())
+                    for _ in defense_mon.attached_mons:
+                        self.player.discard.append(defense_mon.attached_mons.pop())
+                    defense_mon.reset()
+                    self.player.discard.append(defense_mon)
+                    self.player.active = None
+                    self.game_data.active = opponent
+                    options = []
+                    for card_no, card in enumerate(self.game_data.active.bench):
+                        options.append(SelectOption(label=card.name, value=card_no))
+                    self.player.view.clear_items()
+                    self.game_data.active.view.clear_items()
+                    self.player.view.add_item(Button(label = "Waiting...", disabled = True))
+                    self.game_data.active.view.add_item(Switch_Select(self.game_data, self.game_data.active, "Select a pokemon to switch to", options, [{"target": "self"}, {"action": "draw", "amount": 1}]))
+                    await self.player.message.edit(view=self.player.view)
+                    await self.game_data.active.message.edit(view=self.game_data.active.view)
+            else:
+                
+                self.game_data.active = opponent
+                await game_msg(self.game_data.info_thread, f"It is now {self.game_data.active.user.display_name}'s turn - Turn {self.game_data.turn}")
+                await self.game_data.active.draw()
+                turn_view(self.game_data, self.game_data.active)
+                await redraw_player(self.game_data, self.player)
+                await redraw_player(self.game_data, self.game_data.active)
             
+
+def calculate_damage(game_data: PokeGame, attack: int):
+    active_mon = game_data.active.active
+    defense_mon = game_data.players[1-game_data.active.p_num].active
+    for poke_type in active_mon.types:
+        for sub_type in defense_mon.weaknesses:
+            if poke_type == sub_type.get("type", ""):
+                return int(attack["damage"]) * 2
+        for sub_type in defense_mon.resistances:
+            if poke_type == sub_type.get("type", ""):
+                return int(attack["damage"]) + int(sub_type.get("value", 0))
+    return int(attack["damage"])
 
 def check_attack(game_data: PokeGame):
     player = game_data.active

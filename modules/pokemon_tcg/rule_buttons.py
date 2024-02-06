@@ -26,9 +26,11 @@ class Switch_Select(Select):
             elif target == "opponent":
                 target_player = self.game_data.players[1 - self.player.p_num]
                 await game_msg(self.game_data.info_thread, f"{self.player.user.display_name} switched {target_player.user.display_name}'s active pokemon with {target_player.bench[int(self.values[0])].name}")
-            target_player.temp_discard.append(target_player.active)
+            if target_player.active:
+                target_player.temp_discard.append(target_player.active)
             target_player.active = target_player.bench.pop(int(self.values[0]))
-            target_player.bench.append(target_player.temp_discard.pop())
+            if target_player.temp_discard:
+                target_player.bench.append(target_player.temp_discard.pop())
             self.player.view.clear_items()
             if self.player != self.game_data.active:
                 self.player.view.add_item(Button(label = "Waiting...", disabled = True))

@@ -129,8 +129,8 @@ async def draw_rule(game_data:PokeGame, player:PokePlayer, rules: list[dict]):
     amount = rules[0].get("amount",1)
     if target == "self":
         await player.draw(amount)
-        if len(rules) > 1:
-            await edit_view.redraw_player(game_data, player, msg_type = "hand", buttons=False)
+        # if len(rules) > 1:
+        await edit_view.redraw_player(game_data, player, msg_type = "hand", buttons=False)
     elif target == "opponent":
         await game_data.players[1 - player.p_num].draw(amount)
         await edit_view.redraw_player(game_data, game_data.players[1 - player.p_num], msg_type = "hand", buttons=False)
