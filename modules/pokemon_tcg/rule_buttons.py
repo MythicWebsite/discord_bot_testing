@@ -18,10 +18,9 @@ class Switch_Select(Select):
         await ctx.response.defer()
         if not self.disabled:
             self.disabled = True
-            # self.player.com = "Idle"
             target = self.rules[0]["target"]
             await lock_msg(self.player)
-            if target== "self":
+            if target == "self":
                 target_player = self.player
                 await game_msg(self.game_data.info_thread, f"{self.player.user.display_name} switched their active pokemon with {target_player.bench[int(self.values[0])].name}")
             elif target == "opponent":
@@ -30,14 +29,11 @@ class Switch_Select(Select):
             target_player.temp_discard.append(target_player.active)
             target_player.active = target_player.bench.pop(int(self.values[0]))
             target_player.bench.append(target_player.temp_discard.pop())
-            # if self.game_data.players[0].com == "Idle" and self.game_data.players[1].com == "Idle":
             self.player.view.clear_items()
             if self.player != self.game_data.active:
                 self.player.view.add_item(Button(label = "Waiting...", disabled = True))
-            # else:
-            #     edit_view.turn_view(self.game_data, self.game_data.active)
-            await self.player.message.edit(view = self.player.view)
-            await edit_view.redraw_player(self.game_data, target_player, msg_type = "zone")
+                await self.player.message.edit(view = self.player.view)
+            await edit_view.redraw_player(self.game_data, target_player, msg_type = "zone", buttons=False)
             await game_rules.do_rule(self.game_data, self.game_data.active, rules = self.rules)
 
 
@@ -63,7 +59,6 @@ class Search_Select(Select):
         await ctx.response.defer()
         if not self.disabled:
             self.disabled = True
-            # self.player.com = "Idle"
             await lock_msg(self.player)
             card_type, card_num = self.values[0].split("_")
             if card_type != "None":
@@ -96,12 +91,9 @@ class Search_Select(Select):
                 self.player.view.add_item(Button(label = "End Turn", disabled = True))
                 await edit_view.redraw_player(self.game_data, self.player, msg_type = "hand", buttons=False)
             else:
-            # if self.game_data.players[0].com == "Idle" and self.game_data.players[1].com == "Idle":
                 if self.player != self.game_data.active:
                     self.player.view.clear_items()
                     self.player.view.add_item(Button(label = "Waiting...", disabled = True))
-                # else:
-                #     edit_view.turn_view(self.game_data, self.game_data.active)
                     await self.player.message.edit(view = self.player.view)
-                await edit_view.redraw_player(self.game_data, self.player)
+                await edit_view.redraw_player(self.game_data, self.player, buttons=False)
                 await game_rules.do_rule(self.game_data, self.game_data.active, rules = self.rules)

@@ -1,4 +1,3 @@
-from typing import Any
 from discord.components import SelectOption
 from discord.ui import Button, Select
 from modules.pokemon_tcg.game_classes import PokeGame, PokePlayer, PokeCard, evolve
@@ -22,22 +21,7 @@ class Retreat_Button(Button):
         await ctx.response.defer()
         if not self.disabled:
             self.disabled = True
-            
-            
 
-class Cancel_Button(Button):
-    def __init__(self, game_data: PokeGame, player: PokePlayer):
-        super().__init__(label=f"Cancel")
-        self.game_data = game_data
-        self.player = player
-        
-    async def callback(self, ctx: Interaction):
-        await ctx.response.defer()
-        if not self.disabled:
-            self.disabled = True  
-            self.player.com = "Cancel"
-            turn_view(self.game_data, self.player)
-            await self.player.message.edit(view=self.player.view)
             
 class End_Turn_Button(Button):
     def __init__(self, game_data: PokeGame, player: PokePlayer, disabled: bool = False):
@@ -121,7 +105,6 @@ class Play_Card_Select(Select):
                     
             #Resolve playing Trainer cards
             elif card.supertype == "Trainer":
-                self.player.com = "Playing"
                 refresh = False
                 self.player.temp = self.player.hand.pop(int(self.values[0]))
                 await game_msg(self.game_data.info_thread, f"{self.player.user.display_name} played {card.name}")

@@ -123,14 +123,14 @@ async def do_rule(game_data:PokeGame, player:PokePlayer, card:PokeCard = None, r
             if game_data.active == player:
                 edit_view.turn_view(game_data, player)
                 await player.message.edit(view = player.view)
-        player.com = "Idle"
   
 async def draw_rule(game_data:PokeGame, player:PokePlayer, rules: list[dict]):
     target = rules[0].get("target", "self")
     amount = rules[0].get("amount",1)
     if target == "self":
         await player.draw(amount)
-        await edit_view.redraw_player(game_data, player, msg_type = "hand", buttons=False)
+        if len(rules) > 1:
+            await edit_view.redraw_player(game_data, player, msg_type = "hand", buttons=False)
     elif target == "opponent":
         await game_data.players[1 - player.p_num].draw(amount)
         await edit_view.redraw_player(game_data, game_data.players[1 - player.p_num], msg_type = "hand", buttons=False)
@@ -139,7 +139,6 @@ async def draw_rule(game_data:PokeGame, player:PokePlayer, rules: list[dict]):
 async def switch_rule(game_data:PokeGame, player:PokePlayer, rules: list[dict]):
     target = rules[0].get("target", "self")
     choice = rules[0].get("choice", "self")
-    # player.com = "Switching"
     options = []
     for i, card in enumerate(player.bench if target == "self" else game_data.players[1 - player.p_num].bench):
         options.append(SelectOption(label=f"{card.name} - Bench {i + 1}", value=i))
