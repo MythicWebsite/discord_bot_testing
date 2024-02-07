@@ -244,14 +244,14 @@ class Attack_Select(Select):
                     return
                 else:
                     for _ in defense_mon.attached_energy:
-                        self.player.discard.append(defense_mon.attached_energy.pop())
+                        opponent.discard.append(defense_mon.attached_energy.pop())
                     for _ in defense_mon.attached_tools:
-                        self.player.discard.append(defense_mon.attached_tools.pop())
+                        opponent.discard.append(defense_mon.attached_tools.pop())
                     for _ in defense_mon.attached_mons:
-                        self.player.discard.append(defense_mon.attached_mons.pop())
+                        opponent.discard.append(defense_mon.attached_mons.pop())
                     defense_mon.reset()
-                    self.player.discard.append(defense_mon)
-                    self.player.active = None
+                    opponent.discard.append(defense_mon)
+                    opponent.active = None
                     self.game_data.active = opponent
                     options = []
                     for card_no, card in enumerate(self.game_data.active.bench):
