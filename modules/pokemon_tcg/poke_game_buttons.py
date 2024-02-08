@@ -25,6 +25,24 @@ class Retreat_Button(Button):
         await ctx.response.defer()
         if not self.disabled:
             self.disabled = True
+            options = []
+            dupes = []
+            cost = deepcopy(self.player.active.retreatCost)
+            self.player.view.clear_items()
+            await game_msg(self.game_data.info_thread, f"{self.player.user.display_name} has decided to retreat their active pokemon")
+            if len(cost) > 0:
+                for energy in self.player.active.attached_energy:
+                    energy_name = energy.name.split(" Energy")[0]
+                    if energy_name in cost or "Colorless" in cost:
+                        if not energy_name in dupes:
+                            dupes.append(energy_name)
+                            options.append(SelectOption(label=energy.name, value=energy_name))
+                self.player.view.add_item(Retreat_Select(self.game_data, self.player, options, cost))
+            else:
+                for num, pokemon in enumerate(self.player.bench):
+                    options.append(SelectOption(label=f"{pokemon.name} - Bench {num + 1}", value=num))
+                self.player.view.add_item(Switch_Select(self.game_data, self.player, "Select a pokemon to switch to", options, [{"target": "self"}]))
+            await redraw_player(self.game_data, self.player, buttons=False)
 
             
 class End_Turn_Button(Button):
@@ -61,8 +79,8 @@ class End_Turn_Button(Button):
             await hand_msg(ctx, self.player, File(fp=generate_hand_image(self.player.hand), filename="hand.png"), True)
             await other_player.message.edit(attachments=[File(fp=generate_hand_image(other_player.hand), filename="hand.png")], view=other_player.view)
             # await self.player.message.edit(view=self.player.view)
-            for i, msg in enumerate(self.game_data.zone_msg):
-                await msg.edit(attachments=[File(fp=generate_zone_image(self.game_data, self.game_data.players[i]), filename="zone.jpeg")])
+            await redraw_player(self.game_data, self.game_data.players[0], msg_type = "zone", buttons=False)
+            await redraw_player(self.game_data, self.game_data.players[1], msg_type = "zone", buttons=False)
             
             
 class Play_Card_Select(Select):
@@ -101,24 +119,24 @@ class Play_Card_Select(Select):
                 if selected_card:
                     if selected_card == "active":
                         self.player.active.attached_energy.append(self.player.hand.pop(int(self.values[0])))
-                        await game_msg(self.game_data.info_thread, f"{self.player.user.display_name} placed {card.name} on {self.player.active.name}")
+                        await game_msg(self.game_data.info_thread, f"{self.player.user.display_name} placed {card.name} on {self.player.active.name}",[card, self.player.active])
                     else:
                         self.player.bench[int(selected_card)].attached_energy.append(self.player.hand.pop(int(self.values[0])))
-                        await game_msg(self.game_data.info_thread, f"{self.player.user.display_name} placed {card.name} on {self.player.bench[int(selected_card)].name}")
+                        await game_msg(self.game_data.info_thread, f"{self.player.user.display_name} placed {card.name} on {self.player.bench[int(selected_card)].name}", [card, self.player.bench[int(selected_card)]])
                     self.player.energy = True
                     
             #Resolve playing Trainer cards
             elif card.supertype == "Trainer":
                 refresh = False
                 self.player.temp = self.player.hand.pop(int(self.values[0]))
-                await game_msg(self.game_data.info_thread, f"{self.player.user.display_name} played {card.name}")
+                await game_msg(self.game_data.info_thread, f"{self.player.user.display_name} played {card.name}", [card])
                 await do_rule(self.game_data, self.player, card, "play")
             
             #Resolve playing Pokemon cards
             elif card.supertype == "Pok\u00e9mon":
                 if "Basic" in card.subtypes:
                     self.player.bench.append(self.player.hand.pop(int(self.values[0])))
-                    await game_msg(self.game_data.info_thread, f"{self.player.user.display_name} placed {card.name} onto their bench", File(fp=generate_card(card), filename="card.png"))
+                    await game_msg(self.game_data.info_thread, f"{self.player.user.display_name} placed {card.name} onto their bench", [card])
                 else:
                     options: list[SelectOption] = []
                     selected_card = None
@@ -145,7 +163,7 @@ class Play_Card_Select(Select):
                         else:
                             evolve(card, self.player.bench[int(selected_card)])
                             self.player.bench[int(selected_card)] = self.player.hand.pop(int(self.values[0]))
-                        await game_msg(self.game_data.info_thread, f"{self.player.user.display_name} evolved their pokemon into {card.name}", File(fp=generate_card(card), filename="card.png"))
+                        await game_msg(self.game_data.info_thread, f"{self.player.user.display_name} evolved their pokemon into {card.name}", [card])
             if refresh:
                 turn_view(self.game_data, self.player)
                 await redraw_player(self.game_data, self.player)
@@ -170,14 +188,14 @@ class Follow_Up_Select(Select):
                 else:
                     evolve(self.card, self.player.bench[int(self.values[0])])
                     self.player.bench[int(self.values[0])] = self.player.hand.pop(int(self.card_hand_loc))
-                await game_msg(self.game_data.info_thread, f"{self.player.user.display_name} evolved their pokemon into {self.card.name}", File(fp=generate_card(self.card), filename="card.png"))
+                await game_msg(self.game_data.info_thread, f"{self.player.user.display_name} evolved their pokemon into {self.card.name}", [self.card])
             elif self.custom_id == "energy":
                 if self.values[0] == "active":
                     self.player.active.attached_energy.append(self.player.hand.pop(int(self.card_hand_loc)))
-                    await game_msg(self.game_data.info_thread, f"{self.player.user.display_name} placed {self.card.name} on {self.player.active.name}")
+                    await game_msg(self.game_data.info_thread, f"{self.player.user.display_name} placed {self.card.name} on {self.player.active.name}",[self.card, self.player.active])
                 else:
                     self.player.bench[int(self.values[0])].attached_energy.append(self.player.hand.pop(int(self.card_hand_loc)))
-                    await game_msg(self.game_data.info_thread, f"{self.player.user.display_name} placed {self.card.name} on {self.player.bench[int(self.values[0])].name}")
+                    await game_msg(self.game_data.info_thread, f"{self.player.user.display_name} placed {self.card.name} on {self.player.bench[int(self.values[0])].name}",[self.card, self.player.bench[int(self.values[0])]])
                 self.player.energy = True
             turn_view(self.game_data, self.player)
             await redraw_player(self.game_data, self.player)
@@ -226,10 +244,10 @@ class Attack_Select(Select):
             self.player.active.turn_cooldown = True
             self.player.energy = False
             if defense_mon.current_hp == 0:
-                await game_msg(self.game_data.info_thread, f"{opponent.user.display_name}'s {defense_mon.name} fainted! {self.player.user.display_name} takes a prize card")
+                await game_msg(self.game_data.info_thread, f"{opponent.user.display_name}'s {defense_mon.name} fainted! {self.player.user.display_name} takes a prize card",[defense_mon])
                 self.player.hand.append(self.player.prize.pop())
-                redraw_player(self.game_data, self.player, msg_type = "zone", buttons=False)
-                redraw_player(self.game_data, opponent, msg_type = "zone", buttons=False)
+                await redraw_player(self.game_data, self.player, msg_type = "zone", buttons=False)
+                await redraw_player(self.game_data, opponent, msg_type = "zone", buttons=False)
                 if len(self.player.prize) == 0:
                     await game_msg(self.game_data.info_thread, f"{self.player.user.display_name} has no cards left in their prize pool, they win!")
                     self.game_data.winner = self.player
@@ -300,8 +318,8 @@ def check_attack(game_data: PokeGame):
                         cost.remove(energy_name)
                     elif "Colorless" in cost:
                         cost.remove("Colorless")
-                        if energy_name == "Double Colorless Energy" and "Colorless" in cost:
-                            cost.remove(energy_name)
+                        if energy_name == "Double Colorless" and "Colorless" in cost:
+                            cost.remove("Colorless")
                 if len(cost) == 0:
                     available_attacks.append(attack)
             else:
@@ -309,6 +327,70 @@ def check_attack(game_data: PokeGame):
         if available_attacks:
             return available_attacks
     return False
+
+def check_retreat(game_data: PokeGame, cost: list = None):
+    player = game_data.active
+    card = player.active
+    if len(player.bench) > 0:
+        if not cost:
+            cost = deepcopy(card.retreatCost)
+        for energy in card.attached_energy:
+            energy_name = energy.name.split(" Energy")[0]
+            if energy_name in cost:
+                cost.remove(energy_name)
+            elif "Colorless" in cost:
+                cost.remove("Colorless")
+                if energy_name == "Double Colorless" and "Colorless" in cost:
+                    cost.remove("Colorless")
+        if len(cost) == 0:
+            return True
+    return False
+
+
+class Retreat_Select(Select):
+    def __init__(self, game_data: PokeGame, player: PokePlayer, options: list[SelectOption], cost: list):
+        super().__init__(placeholder = "Discard energy to retreat", options = options)
+        self.game_data = game_data
+        self.player = player
+        self.cost = cost
+    
+    async def callback(self, ctx: Interaction):
+        await ctx.response.defer()
+        if not self.disabled:
+            self.disabled = True
+            await lock_msg(self.player)
+            if self.values[0] == "Double Colorless":
+                self.cost.remove("Colorless")
+                if "Colorless" in self.cost:
+                    self.cost.remove("Colorless")
+            elif self.values[0] in self.cost:
+                self.cost.remove(self.values[0])
+            else:
+                self.cost.remove("Colorless")
+            
+            discarded_card = None
+            for energy_no, energy in enumerate(self.player.active.attached_energy):
+                if energy.name.split(" Energy")[0] == self.values[0]:
+                    discarded_card = self.player.active.attached_energy[energy_no]
+                    self.player.discard.append(self.player.active.attached_energy.pop(energy_no))
+                    break
+            self.player.view.clear_items()
+            options = []
+            dupes = []
+            if len(self.cost) > 0:
+                for energy_no, energy in enumerate(self.player.active.attached_energy):
+                    energy_name = energy.name.split(" Energy")[0]
+                    if energy_name in self.cost or "Colorless" in self.cost:
+                        if not energy_name in dupes:
+                            dupes.append(energy_name)
+                            options.append(SelectOption(label=energy.name, value=energy_name))
+                self.player.view.add_item(Retreat_Select(self.game_data, self.player, options, self.cost))
+            else:
+                for num, pokemon in enumerate(self.player.bench):
+                    options.append(SelectOption(label=f"{pokemon.name} - Bench {num + 1}", value=num))
+                self.player.view.add_item(Switch_Select(self.game_data, self.player, "Select a pokemon to switch to", options, [{"target": "self"}]))
+            await game_msg(self.game_data.info_thread, f"{self.player.user.display_name} discarded {discarded_card.name} from their active pokemon", [discarded_card])
+            await redraw_player(self.game_data, self.player, buttons=False)            
 
 class Inspect_Played_Card_Select(Select):
     def __init__(self, game_data: PokeGame, player: PokePlayer):
@@ -348,7 +430,7 @@ def turn_view(game_data: PokeGame, player: PokePlayer):
     if len(options) == 0:
         options.append(SelectOption(label="No attacks to use", value="None"))
     player.view.add_item(Attack_Select(game_data, player, options))
-    player.view.add_item(Retreat_Button(game_data, player, True))
+    player.view.add_item(Retreat_Button(game_data, player, False if check_retreat(game_data) else True))
     player.view.add_item(End_Turn_Button(game_data, player))
     game_data.players[1-player.p_num].view.clear_items()
     game_data.players[1-player.p_num].view.add_item(Button(label = "Waiting...", disabled = True))
@@ -361,4 +443,5 @@ async def redraw_player(game_data: PokeGame, player: PokePlayer, msg_type: str =
                 turn_view(game_data, player)
         await player.message.edit(attachments=[File(fp=generate_hand_image(player.hand), filename="hand.png")], view=player.view)
     if msg_type == "zone" or msg_type == None:
-        await game_data.zone_msg[player.p_num].edit(attachments=[File(fp=generate_zone_image(game_data, player), filename="zone.jpeg")])
+        content = " " if player != game_data.active else f"↓{player.user.display_name}↓ ↑{game_data.players[1 - game_data.active.p_num].user.display_name}↑"
+        await game_data.zone_msg[0 if player != game_data.active else 1].edit(content = content, attachments=[File(fp=generate_zone_image(game_data, player), filename="zone.jpeg")])

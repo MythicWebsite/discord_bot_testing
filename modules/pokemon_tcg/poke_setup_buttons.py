@@ -3,7 +3,7 @@ from discord.ui import Button, Select, View
 from modules.pokemon_tcg.game_classes import PokeGame, PokePlayer, PokeCard
 from modules.pokemon_tcg.game_images import generate_hand_image, generate_zone_image, generate_card
 from modules.pokemon_tcg.poke_messages import game_msg, hand_msg, lock_msg
-from modules.pokemon_tcg.poke_game_buttons import turn_view
+from modules.pokemon_tcg.poke_game_buttons import turn_view, redraw_player
 from discord import Interaction, File, Embed
 from random import randint
 import logging
@@ -194,12 +194,14 @@ class Select_Startup_Bench(Select):
                         if player != self.game_data.active:
                             player.view.add_item(Button(label = "Waiting...", disabled = True))
                             await player.message.edit(view=player.view)
-                        await self.game_data.zone_msg[i].edit(attachments=[File(fp=generate_zone_image(self.game_data, player), filename="zone.jpeg")])
-                        await game_msg(self.game_data.info_thread, f"{player.user.display_name} reveals their active pokemon", File(fp=generate_card(player.active), filename="active_pokemon.png"))
+                        # await self.game_data.zone_msg[i].edit(attachments=[File(fp=generate_zone_image(self.game_data, player), filename="zone.jpeg")])
+                        await game_msg(self.game_data.info_thread, f"{player.user.display_name} reveals {player.active.name} as their active pokemon", [player.active])
                     await game_msg(self.game_data.info_thread, f"{self.game_data.active.user.display_name} won the coin flip and will go first")
                     await self.game_data.active.draw()
                     turn_view(self.game_data, self.game_data.active)
-                    await self.game_data.active.message.edit(attachments=[File(fp=generate_hand_image(self.game_data.active.hand), filename="hand.png")], view=self.game_data.active.view)
+                    # await self.game_data.active.message.edit(attachments=[File(fp=generate_hand_image(self.game_data.active.hand), filename="hand.png")], view=self.game_data.active.view)
+                    await redraw_player(self.game_data, self.game_data.active)
+                    await redraw_player(self.game_data, self.game_data.players[1 - self.game_data.active.p_num])
                 elif self.game_data.players[1 - self.player.p_num].com in ["WaitMulligan","ReadyForSelect"]:
                     for i, player in enumerate(self.game_data.players):
                         player.view.clear_items()

@@ -32,6 +32,9 @@ class PokeCard():
         self.attached_mons: list[PokeCard] = []
         self.attached_energy: list[PokeCard] = []
         self.attached_tools: list[PokeCard] = []
+        self.image_link: str = card.get("images", {}).get("large", None)
+        if self.image_link is None:
+            self.image_link = card.get("images", {}).get("small", None)
         
     def reset(self):
         self.current_hp = self.hp

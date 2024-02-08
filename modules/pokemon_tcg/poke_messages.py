@@ -5,10 +5,17 @@ from datetime import datetime
 class Fake_Player():
     message: Message
     view: View
+    
+class Fake_Card():
+    name: str
+    image_link: str
 
-async def game_msg(thread: Thread, msg: str, image: File = None):
+async def game_msg(thread: Thread, msg: str, cards: list[Fake_Card] = []):
     timestamp = datetime.now().strftime("[%I:%M %p]: ")
-    await thread.send(content = f"{timestamp}{msg}", file=image)
+    if cards:
+        for card in cards:
+            msg = msg.replace(card.name, f"[{card.name}]({card.image_link})")
+    await thread.send(content = f"{timestamp}{msg}")
     
 async def hand_msg(ctx: Interaction, player:Fake_Player, image: File, refresh: bool = False):
     if refresh:

@@ -22,10 +22,10 @@ class Switch_Select(Select):
             await lock_msg(self.player)
             if target == "self":
                 target_player = self.player
-                await game_msg(self.game_data.info_thread, f"{self.player.user.display_name} switched their active pokemon with {target_player.bench[int(self.values[0])].name}")
+                await game_msg(self.game_data.info_thread, f"{self.player.user.display_name} switched their active pokemon with {target_player.bench[int(self.values[0])].name}", [target_player.bench[int(self.values[0])]])
             elif target == "opponent":
                 target_player = self.game_data.players[1 - self.player.p_num]
-                await game_msg(self.game_data.info_thread, f"{self.player.user.display_name} switched {target_player.user.display_name}'s active pokemon with {target_player.bench[int(self.values[0])].name}")
+                await game_msg(self.game_data.info_thread, f"{self.player.user.display_name} switched {target_player.user.display_name}'s active pokemon with {target_player.bench[int(self.values[0])].name}", [target_player.bench[int(self.values[0])]])
             if target_player.active:
                 target_player.temp_discard.append(target_player.active)
             target_player.active = target_player.bench.pop(int(self.values[0]))
@@ -68,12 +68,15 @@ class Search_Select(Select):
                 self.to_loc.append(card)
             else:
                 card = None
+            to_text = self.rules[0]['to_loc']
+            if to_text == "temp_discard":
+                to_text = "temp discard"
             if self.rules[0].get("reveal", True) and card_type != "None":
-                await game_msg(self.game_data.info_thread, f"{self.player.user.display_name} sent {card.name} to their {self.rules[0]['to_loc']} from their {self.rules[0]['from_loc']}", image = File(fp = generate_card(card), filename="card.png"))
+                await game_msg(self.game_data.info_thread, f"{self.player.user.display_name} sent {card.name} to their {to_text} from their {self.rules[0]['from_loc']}", [card])
             elif card_type != "None":
-                await game_msg(self.game_data.info_thread, f"{self.player.user.display_name} sent a card to their {self.rules[0]['to_loc']} from their {self.rules[0]['from_loc']}")
+                await game_msg(self.game_data.info_thread, f"{self.player.user.display_name} sent a card to their {to_text} from their {self.rules[0]['from_loc']}")
             else:
-                await game_msg(self.game_data.info_thread, f"{self.player.user.display_name} did not select a card to send to their {self.rules[0]['to_loc']} from their {self.rules[0]['from_loc']}")   
+                await game_msg(self.game_data.info_thread, f"{self.player.user.display_name} did not select a card to send to their {to_text} from their {self.rules[0]['from_loc']}")   
             if self.amount > 1 and card_type != "None":
                 if self.specific_amount:
                     self.specific_amount[card_type] -= 1

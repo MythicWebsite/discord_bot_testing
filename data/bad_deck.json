@@ -16,12 +16,6 @@
                     "count": 6
                 },
                 {
-                    "id": "base1-60",
-                    "name": "Ponyta",
-                    "rarity": "Common",
-                    "count": 6
-                },
-                {
                     "id": "base1-46",
                     "name": "Charmander",
                     "rarity": "Common",
@@ -34,10 +28,16 @@
                     "count": 3
                 },
                 {
+                    "id": "base1-36",
+                    "name": "Charmeleon",
+                    "rarity": "Uncommon",
+                    "count": 14
+                },
+                {
                     "id": "base1-91",
                     "name": "Bill",
                     "rarity": "Common",
-                    "count": 14
+                    "count": 4
                 },
                 {
                     "id": "base1-71",
@@ -47,7 +47,7 @@
                 {
                     "id": "base1-74",
                     "name": "Item Finder",
-                    "count": 14
+                    "count": 4
                 },
                 {
                     "id": "base1-93",
@@ -64,7 +64,12 @@
                 {
                     "id": "base1-98",
                     "name": "Fire Energy",
-                    "count": 3
+                    "count": 8
+                },
+                {
+                    "id": "base1-96",
+                    "name": "Double Colorless Energy",
+                    "count": 8
                 },
                 {
                     "id": "base1-88",
