@@ -1,5 +1,158 @@
 {
     "base1":{
+        "base1-1":{
+            "activate":[
+                {
+                    "action": "move_damage",
+                    "amount": 10,
+                    "target":"self",
+                    "can_ko": false
+                }
+            ],
+            "attack_0":[
+                {
+                    "action": "status",
+                    "target": "opponent",
+                    "status": "confused",
+                    "coin_flip": true
+                }
+            ]
+        },
+        "base1-2":{
+            "activate":[
+                {
+                    "action": "attach_energy",
+                    "amount": 1,
+                    "target":"self",
+                    "type": ["Water Energy"]
+                }
+            ],
+            "attack_0":[
+                {
+                    "action": "damage_boost",
+                    "type": "extra_energy",
+                    "limit": 20,
+                    "amount": 10
+                }
+            ]
+        },
+        "base1-3":{
+            "attack_0":[
+                {
+                    "action": "prevent_damage",
+                    "amount": "all",
+                    "coin_flip": true
+                }
+            ],
+            "attack_1":[
+                {
+                    "action": "damage",
+                    "target": "self",
+                    "amount": 80
+                }
+            ]
+        },
+        "base1-4":{
+            "before_attack":[
+                {
+                    "action": "convert_attack_energy",
+                    "from_type": "all",
+                    "to_type": "Fire Energy"
+                }
+            ],
+            "attack_0":[
+                {
+                    "action": "remove",
+                    "amount": 2,
+                    "target": "self",
+                    "type": "energy"
+                }
+            ]
+        },
+        "base1-5":{
+            "attack_0":[
+                {
+                    "action": "status",
+                    "target": "opponent",
+                    "status": "asleep",
+                    "coin_flip": true
+                }
+            ],
+            "attack_1":[
+                {
+                    "action": "copy_attack",
+                    "target": "active"
+                }
+            ]
+        },
+        "base1-6":{
+            "attack_1":[
+                {
+                    "action": "status",
+                    "target": "opponent",
+                    "status": "paralyzed",
+                    "coin_flip": true
+                }
+            ]
+        },
+        "base1-8":{
+            "on_attacked":[
+                {
+                    "action": "damage",
+                    "target": "opponent",
+                    "amount": 10,
+                    "ignore_weakness": true,
+                    "ignore_resistance": true,
+                    "fail_on_status": true
+                }
+            ]
+        },
+        "base1-9":{
+            "attack_0":[
+                {
+                    "action": "status",
+                    "target": "opponent",
+                    "status": "paralyzed",
+                    "coin_flip": true
+                }
+            ],
+            "attack_1":[
+                {
+                    "action": "damage",
+                    "target": "all_bench",
+                    "amount": 20,
+                    "ignore_weakness": true,
+                    "ignore_resistance": true
+                },
+                {
+                    "action": "damage",
+                    "target": "self",
+                    "amount": 80
+                }
+            ]
+        },
+        "base1-10":{
+            "attack_0":[
+                {
+                    "action": "damage_boost",
+                    "amount": 10,
+                    "type": "opponent_energy"
+                }
+            ],
+            "attack_1":[
+                {
+                    "action": "remove",
+                    "amount": 1,
+                    "target": "self",
+                    "type": "energy",
+                    "specific_type": "Psychic Energy"
+                },
+                {
+                    "action": "prevent_all",
+                    "target": "self"
+                }
+            ]
+        },
         "base1-70":{
             "activate":[
                 {
@@ -150,6 +303,7 @@
                 {
                     "action": "remove",
                     "type": "energy",
+                    "target": "opponent",
                     "amount": 2
                 }
             ]
